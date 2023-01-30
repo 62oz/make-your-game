@@ -95,7 +95,18 @@ function plantBomb(e) {
   }
 }
 
-document.addEventListener(' ', plantBomb);
+document.addEventListener('keydown', plantBomb);
+
+ function checkForOuterWall(e) {
+        const playerRow = parseInt(player.style.gridRow);
+        const playerCol = parseInt(player.style.gridColumn);
+        if (playerRow === 0 || playerRow === 11 || playerCol === 0 || playerCol === 11) {
+                player.style.gridRow = 5;
+                player.style.gridColumn = 5;
+        }
+}
+
+document.addEventListener('keydown', checkForOuterWall);
 
 
                 
