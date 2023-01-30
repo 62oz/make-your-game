@@ -2,11 +2,11 @@
 class GridSystem {
     constructor(matrix) {
         this.matrix = matrix;
-        this.uiContext = this.drawArea(420, 580, "#111")
-        this.outlineContext = this.drawArea(320, 480, "#444")
-        this.topContext = this.drawArea(320, 480, "#111", true)
-        this.cellSize = 30;
-        this.padding = 4;
+        this.uiContext = this.drawArea(420, 580, "blue")
+        this.outlineContext = this.drawArea(0, 0, "#444")
+        this.topContext = this.drawArea(0, 0, "#111", true)
+        this.cellSize = 40;
+        this.padding = 1;
     }
 
 
@@ -51,6 +51,35 @@ Canvas has several methods for drawing paths, boxes, circles, text, and adding i
 
         return this.context;
     }
+
+    render() {
+        const w = (this.cellSize + this.padding) * this.matrix[0].length - (this.padding)
+        const h = (this.cellSize + this.padding) * this.matrix.length - (this.padding)
+
+        this.outlineContext.canvas.width = w
+        this.outlineContext.canvas.height = h
+
+        const center = this.getCenter(w, h)
+
+        this.outlineContext.canvas.style.marginLeft = center.x
+        this.outlineContext.canvas.style.marginTop = center.y
+
+        this.topContext.canvas.style.marginLeft = center.x
+        this.topContext.canvas.style.marginTop = center.y
+
+        for (let row = 0; row < this.matrix.length;  row++) {
+            for (let col = 0; col < this.matrix[row].length; col++) {
+                this.outlineContext.fillStyle = this.matrix[row][col] === 1 ? "green" : "red"
+                this.outlineContext.fillRect(col * (this.cellSize + this.padding),
+                row * (this.cellSize + this.padding),
+                this.cellSize, this.cellSize)
+            }
+        }
+
+        this.uiContext.font = "20px Courier"
+        this.uiContext.fillStyle = "white"
+        this.uiContext.fillText("Bomberman", 20, 30)
+    }
 }
 
 const gridMatrix = [
@@ -64,3 +93,4 @@ const gridMatrix = [
 ];
 
 const gridSystem = new GridSystem(gridMatrix)
+gridSystem.render()
