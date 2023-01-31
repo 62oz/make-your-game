@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      #game-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      #game-board {
+        width: 500px;
+        height: 500px;
+        border: 1px solid black;
+        background-color: lightgray;
+      }
+
+      #score-board {
+        font-size: 20px;
+        margin-bottom: 10px;
+      }
+
+      #countdown-clock {
+        font-size: 20px;
+        margin-bottom: 10px;
+      }
+
+      #lives {
+        font-size: 20px;
+        margin-bottom: 10px;
+      }
+
+      #pause-menu {
+        display: none;
+        width: 200px;
+        height: 100px;
+        background-color: white;
+        border: 1px solid black;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        padding: 20px;
+        text-align: center;
+      }
+
+      button {
+        width: 80px;
+        height: 30px;
+        margin: 10px;
+      }
+
+      #bomb {
+        width: 50px;
+        height: 50px;
+        background-color: red;
+        position: absolute;
+        top: 0;
+        left: 0;
+      }
+
+      #player {
+        width: 50px;
+        height: 50px;
+        background-color: blue;
+        position: absolute;
+        top: 0;
+        left: 0;
+      }
+
+      #explosion {
+        width: 50px;
+        height: 50px;
+        background-color: yellow;
+        position: absolute;
+        top: 0;
+        left: 0;
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="game-container">
+      <div id="game-board"></div>
+      <div id="score-board">Score: 0</div>
+      <div id="countdown-clock">Timer: 60</div>
+      <div id="lives">Lives: 3</div>
+      <div id="pause-menu">
+        <button id="continue-btn">Continue</button>
+        <button id="restart-btn">Restart</button>
+      </div>
+      <div id="bomb"></div>
+      <div id="player"></div>
+      <div id="explosion"></div>
+    </div>
+
+    <script>
+      // Initialize game variables
+      let score = 0;
+      let lives = 3;
+      let timer = 120;
+      let gamePaused = false;
+      let startedTimer = true;
+      // Initialize game elements
+      const scoreBoard = document.getElementById("score-board");
+      const countdownClock = document.getElementById("countdown-clock");
+      const livesDisplay = document.getElementById("lives");
+      const pauseMenu = document.getElementById("pause-menu");
+      const continueBtn = document.getElementById("continue-btn");
+      const restartBtn = document.getElementById("restart-btn");
+      const bomb = document.getElementById("bomb");
+      const player = document.getElementById("player");
+      const explosion = document.getElementById("explosion");
+      // Initialize player movement variables
+      let moveLeft = false;
+      let moveRight = false;
+      let moveUp = false;
+      let moveDown = false;
+      // Handle player movement
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "ArrowLeft") {
+          moveLeft = true;
+        }
+        if (event.key === "ArrowRight") {
+          moveRight = true;
+        }
+        if (event.key === "ArrowUp") {
+          moveUp = true;
+        }
+        if (event.key === "ArrowDown") {
+          moveDown = true;
+        }
+      });
+      document.addEventListener("keyup", (event) => {
+        if (event.key === "ArrowLeft") {
+          moveLeft = false;
+        }
+        if (event.key === "ArrowRight") {
+          moveRight = false;
+        }
+        if (event.key === "ArrowUp") {
+          moveUp = false;
+        }
+        if (event.key === "ArrowDown") {
+          moveDown = false;
+        }
+      });
+      // Handle pause/continue game
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+          gamePaused = !gamePaused;
+          startedTimer = false;
+          if (gamePaused) {
+            pauseMenu.style.display = "block";
+          } else {
+            pauseMenu.style.display = "none";
+          }
+        }
+      });
+      // Handle restart game
+      restartBtn.addEventListener("click", () => {
+        gamePaused = false;
+        pauseMenu.style.display = "none";
+        score = 0;
+        lives = 3;
+        timer = 120;
+      });
+      // Update score, lives and timer
+      const updateMetrics = () => {
+        scoreBoard.innerHTML = `Score: ${score}`;
+        livesDisplay.innerHTML = `Lives: ${lives}`;
+        countdownClock.innerHTML = `Timer: ${timer}`;
+      };
+
+      reduceTimer = () => {
+        while (startedTimer) {
+          setInterval(() => {
+            timer -= 1;
+          }, 1000);
+          startedTimer = false;
+        }
+      };
+
+      // Game loop using requestAnimationFrame
+      const gameLoop = () => {
+        if (!gamePaused) {
+          //call reduceTimer
+          reduceTimer();
+          touchBomb();
+
+          // Update player position
+          if (moveLeft) {
+            // Update player position
+            let playerX = parseInt(player.style.left);
+            playerX -= 5;
+            player.style.left = playerX + "px";
+          }
+          if (moveRight) {
+            // Update player position
+            let playerX = parseInt(player.style.left);
+            playerX += 5;
+            player.style.left = playerX + "px";
+          }
+          if (moveUp) {
+            // Update player position
+            let playerY = parseInt(player.style.top);
+            playerY -= 5;
+            player.style.top = playerY + "px";
+          }
+
+          if (moveDown) {
+            // Update player position
+            let playerY = parseInt(player.style.top);
+            playerY += 5;
+            player.style.top = playerY + "px";
+          }
+        }
+      };
+
+      async function touchBomb() {
+        let playerX = parseInt(player.style.left);
+        let playerY = parseInt(player.style.top);
+        let bombX = parseInt(bomb.style.left);
+        let bombY = parseInt(bomb.style.top);
+        if (
+          playerX < bombX + 50 &&
+          playerX + 50 > bombX &&
+          playerY < bombY + 50 &&
+          playerY + 50 > bombY
+        ) {
+          //collision detected
+          //show explosion for 1 second
+          let explosion = document.getElementById("explosion");
+          let player = document.getElementById("player");
+          explosion.style.width = "100px";
+          explosion.style.height = "100px";
+          explosion.style.backgroundColor = "red";
+          explosion.style.position = "absolute";
+          explosion.style.top = playerY + "px";
+          explosion.style.left = playerX + "px";
+          explosion.style.display = "none";
+          function explode() {
+            explosion.style.display = "block";
+            player.style.transform = "transform: scale(3)";
+            setTimeout(() => {
+              explosion.style.display = "none";
+              player.style.transform = "transform: none";
+            }, 2000);
+          }
+
+          explode();
+
+          //reduce lives
+          lives -= 1;
+          //update bomb position
+          bombX = Math.floor(Math.random() * 450);
+          bombY = Math.floor(Math.random() * 450);
+          bomb.style.left = bombX + "px";
+          bomb.style.top = bombY + "px";
+
+          //update player position
+          playerX = Math.floor(Math.random() * 450);
+          playerY = Math.floor(Math.random() * 450);
+          player.style.left = playerX + "px";
+          player.style.top = playerY + "px";
+
+          //update score
+          score += 1;
+        }
+
+        // Update metrics
+        updateMetrics();
+        // Check for end game conditions
+        if (timer <= 0 || lives <= 0) {
+          // End game
+        } else {
+          requestAnimationFrame(gameLoop);
+        }
+      }
+      // Start game
+      gameLoop();
+      //start with player and bomb in random positions within the board
+      let playerX = Math.floor(Math.random() * 450);
+      let playerY = Math.floor(Math.random() * 450);
+
+      player.style.left = playerX + "px";
+      player.style.top = playerY + "px";
+      let bombX = Math.floor(Math.random() * 450);
+      let bombY = Math.floor(Math.random() * 450);
+
+      bomb.style.left = bombX + "px";
+      bomb.style.top = bombY + "px";
+    </script>
+  </body>
+</html>
