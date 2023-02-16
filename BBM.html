@@ -2,46 +2,75 @@
 <html>
 
 <head>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=VT323">
   <style>
     body {
       background-color: black;
+      font-family: "VT323", monospace;
+
     }
 
     #game-container {
-      display: flex;
-      flex-direction: column;
+      display: absolute;
       align-items: center;
     }
 
     #static-board {
-      width: 750px;
+      visibility: hidden;
+      width: 830px;
       height: 750px;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
       border: 1px solid black;
       background-image: url("sprites/blue-tile-small.png");
       background-repeat: repeat;
       background-size: 50px 50px;
-      position: fixed;
+      position: absolute;
+    }
+
+    #dynamic-board {
+      z-index: 2;
     }
 
     #score-board {
       font-size: 20px;
       color: white;
       margin-bottom: 10px;
+      position: absolute;
+      bottom: 0px;
     }
 
     #countdown-clock {
       font-size: 20px;
       margin-bottom: 10px;
-      color: white
+      color: white;
+      position: absolute;
+      bottom: 50px;
     }
 
     #lives {
       font-size: 20px;
       margin-bottom: 10px;
       color: white;
+      position: relative;
+      top: 5%;
     }
 
     #pause-menu {
+      display: none;
+      width: 250px;
+      height: 250px;
+      position: absolute;
+      background-image: url("sprites/pause-menu-smaller.png");
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      padding: 20px;
+      text-align: center;
+    }
+
+    #dialogue-box {
       display: none;
       width: 200px;
       height: 100px;
@@ -56,15 +85,16 @@
     }
 
     button {
-      width: 80px;
-      height: 30px;
-      margin: 10px;
+      width: 200px;
+      height: 80px;
+      font-family: "VT323", monospace;
+      cursor: pointer;
     }
 
     .bomb {
       width: 40px;
       height: 40px;
-      background-color: red;
+      background-image: url("sprites/bomb.png");
       position: absolute;
     }
 
@@ -72,7 +102,6 @@
       width: 30px;
       height: 40px;
       position: absolute;
-      visibility: visible;
       top: 0;
       left: 0;
     }
@@ -86,22 +115,40 @@
     }
 
     .explosion {
-      background: yellow;
       height: 140px;
       position: relative;
-      top: -50px;
-      width: 40px;
-      transform: translate(0, calc(-1/3 * 100%));
+      /*       background-image: url("sprites/fireworks-ver.png");
+ */
     }
 
-    .explosion:after {
-      background: yellow;
-      content: "";
-      height: 40px;
-      left: -50px;
+    #main-menu {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
       position: absolute;
-      top: 50px;
-      width: 140px;
+      background-image: url("sprites/start-menu5.png");
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 830px;
+      height: 750px;
+      z-index: 1000;
+    }
+
+    #side {
+      position: relative;
+      float: right;
+      width: 80px;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+    }
+
+    .title {
+      color: white;
+      font-size: 50px;
+      margin-bottom: 20px;
     }
 
     .wallBlock {
@@ -111,68 +158,220 @@
       position: absolute;
       top: 0;
       left: 0;
+      z-index: 0;
     }
 
     .boxBlock {
       width: 50px;
       height: 50px;
-      background-image: url("sprites/Lantern.png");
+      background-image: url("sprites/Lantern-burning.png");
       position: absolute;
       top: 0;
       left: 0;
+    }
+
+    .startBtn {
+      width: 500px;
+      height: 250px;
+      cursor: pointer;
+    }
+
+    .heart {
+      width: 30px;
+      height: 40px;
+      margin-bottom: 10px;
+      background-image: url("sprites/daruma-down.png");
+      position: relative;
+      top: 0;
+      left: 30%;
+      visibility: visible;
+    }
+
+    #game-over-screen {
+      display: none;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-55.4%, -50%);
+      width: 750px;
+      height: 750px;
+      background-image: url("sprites/game-over.png");
+      z-index: 1000;
+    }
+
+    #restart-btn2 {
+      width: 310px;
+      height: 160px;
+      margin: 10px;
+      top: 70%;
+      left: 28%;
+      position: absolute;
+      cursor: pointer;
+      background-color: transparent;
+      border: none;
+    }
+
+    #clock {
+      width: 50px;
+      height: 50px;
+      background-image: url("sprites/moon-cycle2.png");
+      position: relative;
+      top: 0;
+      left: 30%;
+      visibility: visible;
+    }
+
+    #overlay {
+      position: fixed;
+      display: none;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    #continue-btn {
+      width: 250px;
+      height: 120px;
+      margin: 10px;
+      top: 0;
+      left: 5%;
+      position: absolute;
+      cursor: pointer;
+      background-color: transparent;
+      border: none;
+    }
+
+    #restart-btn {
+      width: 250px;
+      height: 120px;
+      margin: 10px;
+      top: 55%;
+      left: 5%;
+      position: absolute;
+      cursor: pointer;
+      background-color: transparent;
+      border: none;
+    }
+
+    #game-over-score {
+      position: absolute;
+      top: 53%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 50px;
+      color: white;
     }
   </style>
 </head>
 
 <body>
   <div id="game-container">
+
     <div id="static-board">
+      <div id="side">
+        <div id="lives">
+          <div class="heart"></div>
+          <div class="heart"></div>
+          <div class="heart"></div>
+        </div>
+        <div id="score-board"></div>
+        <div id="countdown-clock">
+          <div id="countdown"></div>
+          <div id="clock"></div>
+        </div>
+      </div>
       <div class="wallBlock"></div>
       <div id="dynamic-board">
+        <div id="key"></div>
         <div id="player"></div>
       </div>
     </div>
 
+    <div id="dialogue-box">
+      <div id="dialogue-text">You must find the key first</div>
+      <button id="continue-btnD">Continue</button>
+    </div>
+    <div id="overlay"></div>
     <div id="pause-menu">
-      <button id="continue-btn">Continue</button>
-      <button id="restart-btn">Restart</button>
+      <button id="continue-btn"></button>
+      <button id="restart-btn"></button>
     </div>
   </div>
-  <div id="score-board"></div>
-  <div id="countdown-clock"></div>
-  <div id="lives"></div>
+  <div id="main-menu">
+    <button id="start-btn"></button>
+  </div>
+  <div id="game-over-screen">
+    <div id="game-over-score"></div>
+    <button id="restart-btn2"></button>
+  </div>
+
 
   <script>
+
+    const pageAccessedByReload = (
+      (window.performance.navigation && window.performance.navigation.type === 1) ||
+      window.performance
+        .getEntriesByType('navigation')
+        .map((nav) => nav.type)
+        .includes('reload')
+    );
+
+    const staticBoard = document.getElementById("static-board");
+    //Main menu
+    const mainMenu = document.getElementById('main-menu');
+    mainMenu.style.display = "flex";
+    const startButton = document.getElementById('start-btn');
+    startButton.addEventListener('click', () => {
+      // Start game
+      mainMenu.style.display = "none"
+      mainMenu.remove();
+      staticBoard.style.visibility = "visible"
+      gameLoop();
+    });
+
     // Initialize game variables
     let score = 0;
     let lives = 3;
-    let timer = 120;
+    let initialTimer = 180;
+    let timer = initialTimer;
+    let keyTouched = false
     let gamePaused = false;
     let startedTimer = true;
     let immune = false;
     // Initialize game elements
+    const gameContainer = document.getElementById("game-container");
     const scoreBoard = document.getElementById("score-board");
     const countdownClock = document.getElementById("countdown-clock");
-    const livesDisplay = document.getElementById("lives");
+    const countdown = document.getElementById("countdown");
+    const clock = document.getElementById("clock");
+    const livesBoard = document.getElementById("lives");
     const pauseMenu = document.getElementById("pause-menu");
     const continueBtn = document.getElementById("continue-btn");
+    const continueBtnD = document.getElementById("continue-btnD");
     const restartBtn = document.getElementById("restart-btn");
+    const restartBtn2 = document.getElementById("restart-btn2");
+    const gameOverScore = document.getElementById("game-over-score");
     const player = document.getElementById("player");
     const explosions = document.getElementsByClassName("explosion");
-
-    //Surround game board with walls
-    const staticBoard = document.getElementById("static-board");
+    const dynamicBoard = document.getElementById("dynamic-board");
+    const dialogueBox = document.getElementById("dialogue-box");
+    const dialogueText = document.getElementById("dialogue-text");
     const wallBlock = document.getElementsByClassName("wallBlock");
-    for (let i = 0; i < 15; i++) {
-      for (let j = 0; j < 15; j++) {
-        if (i === 0 || i === 14 || j === 0 || j === 14) {
-          const wall = wallBlock[0].cloneNode(true);
-          wall.style.top = `${i * 50}px`;
-          wall.style.left = `${j * 50}px`;
-          staticBoard.appendChild(wall);
-        }
-      }
-    }
+    const gameOverScreen = document.getElementById("game-over-screen");
+    const startBtn = document.getElementById("start-btn");
+    const hearts = document.getElementsByClassName("heart");
+    const overlay = document.getElementById("overlay");
+
+    startBtn.style.width = "275px"
+    startBtn.style.height = "80px"
+    startBtn.style.background = "transparent"
+    startBtn.style.border = "none"
+    startBtn.style.position = "absolute"
+    startBtn.style.top = "83%"
 
     // Add wallBlock every other row and column
     for (let i = 0; i < 15; i++) {
@@ -186,8 +385,33 @@
       }
     }
 
+    //Surround game board with walls
+    for (let i = 0; i < 15; i++) {
+      for (let j = 0; j < 15; j++) {
+        if (i === 0 || i === 14 || j === 0 || j === 14) {
+          const wall = wallBlock[0].cloneNode(true);
+          wall.style.top = `${i * 50}px`;
+          wall.style.left = `${j * 50}px`;
+          wall.style.backgroundImage = "url('sprites/walls.png')";
+          staticBoard.appendChild(wall);
+        }
+      }
+    }
+
+    // Make a goal div and add it to the bottom right corner with id of goal
+    const goal = document.createElement("div");
+    goal.id = "goal";
+    goal.style.top = "650px";
+    goal.style.left = "650px";
+    // 50x50 yellow square
+    goal.style.background = "yellow";
+    goal.style.width = "50px";
+    goal.style.height = "50px";
+    goal.style.position = "absolute";
+    dynamicBoard.appendChild(goal);
+
+
     // Add random number between 30 and 80 of boxBlocks to dynamic board, making sure they don't overlap with walls and top and left values must be multiple of 50
-    const dynamicBoard = document.getElementById("dynamic-board");
     for (let i = 0; i < Math.floor(Math.random() * 50 + 100); i++) {
       const box = document.createElement("div");
       box.classList.add("boxBlock");
@@ -203,6 +427,24 @@
         boxBlocks[i].remove();
       }
     }
+
+    // If there is block on top of goal, remove it
+    for (let i = 0; i < boxBlocks.length; i++) {
+      if (boxBlocks[i].getBoundingClientRect().x === goal.getBoundingClientRect().x && boxBlocks[i].getBoundingClientRect().y === goal.getBoundingClientRect().y) {
+        boxBlocks[i].remove();
+      }
+    }
+
+    // Put key in random boxBlock
+    const key = document.getElementById("key");
+    const randomBox = boxBlocks[Math.floor(Math.random() * boxBlocks.length)];
+    key.style.position = "absolute";
+    key.style.top = randomBox.style.top;
+    key.style.left = randomBox.style.left;
+    key.style.background = "black"
+    // size 50x50
+    key.style.width = "50px";
+    key.style.height = "50px";
 
     // Add monsters to dynamic board
     const spawnMonsters = (N) => {
@@ -337,6 +579,7 @@
     const boxBlocksPositions = [];
     for (let i = 0; i < boxBlocks.length; i++) {
       boxBlocksPositions.push([parseInt(boxBlocks[i].style.left), parseInt(boxBlocks[i].style.top)]);
+      boxBlocks[i].dataset.frame = 0;
     }
 
 
@@ -414,32 +657,42 @@
 
     let timeAtPause = 0
 
+    // Handle continue button
+    continueBtn.addEventListener("click", () => {
+      timer = timeAtPause
+      updateMetrics();
+      gamePaused = false;
+      overlay.style.display = "none";
+      pauseMenu.style.display = "none";
+      gameLoop();
+    });
+
     // Handle pause/continue game
     document.addEventListener("keydown", (event) => {
       if (event.key === "Enter") {
-        gamePaused = !gamePaused;
-        startedTimer = false
-        if (gamePaused) {
-          timeAtPause = timer;
-          pauseMenu.style.display = "block";
-          // Handle continue button
-          continueBtn.addEventListener("click", () => {
-            timer = timeAtPause
-            updateMetrics();
+        if (mainMenu.style.display === "flex") {
+          mainMenu.style.display = "none";
+          gameLoop();
+        } else {
+          gamePaused = !gamePaused;
+          startedTimer = false
+          if (gamePaused) {
+            overlay.style.display = "block";
+            timeAtPause = timer;
+            pauseMenu.style.display = "block";
+          } else {
+            if (timeAtPause) {
+              timer = timeAtPause
+              updateMetrics();
+            }
             gamePaused = false;
+            overlay.style.display = "none";
             pauseMenu.style.display = "none";
             gameLoop();
-          });
-        } else {
-          if (timeAtPause) {
-            timer = timeAtPause
-            updateMetrics();
           }
-
-          pauseMenu.style.display = "none";
-          gameLoop();
         }
       }
+
     });
 
 
@@ -448,15 +701,42 @@
     restartBtn.addEventListener("click", () => {
       location.reload();
     });
+    restartBtn2.addEventListener("click", () => {
+      location.reload();
+    });
 
 
     // Update score, lives and timer
     const updateMetrics = () => {
-      scoreBoard.innerHTML = `Score: ${score}`;
-      livesDisplay.innerHTML = `Lives: ${lives}`;
-      countdownClock.innerHTML = `Timer: ${timer}`;
+      scoreBoard.innerHTML = `Score<br>${score}`;
+      // Hide hearts that are lost
+      for (let i = 0; i < hearts.length; i++) {
+        if (i >= lives) {
+          hearts[i].style.visibility = "hidden";
+        }
+      }
+      countdown.innerHTML = `Timer: ${timer}`;
     };
 
+    const animateExplosion = (explosion, explosionYIndex) => {
+      if (explosionYIndex > 0) {
+        setTimeout(() => {
+          drawSprite(explosion, 0, explosionYIndex, 0, 150);
+          explosionYIndex -= 1;
+          animateExplosion(explosion, explosionYIndex);
+        }, 100);
+      } else {
+        explosion.remove();
+      }
+    };
+
+    const startExplosion = (explosion) => {
+      let explosionYIndex = 8;
+      animateExplosion(explosion, explosionYIndex);
+    };
+
+
+    let bombSlowFrameRate = 4;
 
 
     // Handle putting bomb in front of player and adding it to bombs array
@@ -485,6 +765,8 @@
           break;
       }
 
+      bomb.dataset.frame = 0;
+
       //Add timer to bomb after which add explosion and delete bomb
       let bombTimeout = setTimeout(() => {
         // Create a new explosion element
@@ -493,17 +775,40 @@
         explosion.style.left = bomb.style.left;
         explosion.style.top = bomb.style.top;
 
-        // Delete bomb
-        bomb.remove();
+        explosion.dataset.frame = 0;
+        explosion.dataset.slow = 0;
 
         // Add explosion to game board
         document.getElementById("dynamic-board").appendChild(explosion);
-        //Explosion disappears after 1 second
+        startExplosion(explosion);
+
+        // explosion disappears after 1 second
         setTimeout(() => {
           explosion.remove();
         }, 1000);
 
       }, 3000);
+
+      setTimeout(() => {
+        // Animate bomb
+        let animateBomb = setInterval(() => {
+          if (slowedBy >= bombSlowFrameRate) {
+            let bombFrame = parseInt(bomb.dataset.frame)
+            drawSprite(bomb, 0, bombFrame, 0, -50);
+            slowedBy = 0;
+            bombFrame += 1
+            bomb.dataset.frame = bombFrame
+            if (bombFrame > 5) {
+              // Delete bomb
+              bomb.remove();
+              clearInterval(animateBomb)
+            }
+          } else {
+            slowedBy += 1;
+          }
+        }, 100)
+
+      }, 2400);
 
       // Get bombs positions
       const bombBlockPositions = [];
@@ -516,8 +821,13 @@
       for (let i = 0; i < bombBlockPositions.length; i++) {
         let bombBlock = bombBlockPositions[i];
         if (parseInt(bomb.style.left) === bombBlock[0] && parseInt(bomb.style.top) === bombBlock[1]) {
-          bomb.remove();
-          clearInterval(bombTimeout);
+          //Put bomb on closest multiple of 50 to player's top and left
+          bomb.style.top = Math.ceil(parseInt(player.style.top) / 50) * 50 + "px";
+          bomb.style.left = Math.ceil(parseInt(player.style.left) / 50) * 50 + "px";
+
+          /* bomb.remove();
+          //MAYBE
+          clearTimeout(bombTimeout); */
           return;
         }
       }
@@ -535,8 +845,13 @@
       for (let i = 0; i < wallBlockPositions.length; i++) {
         let wallBlock = wallBlockPositions[i];
         if (bombTop < wallBlock.bottom && bombBottom > wallBlock.top && bombLeft < wallBlock.right && bombRight > wallBlock.left) {
-          bomb.remove();
-          clearInterval(bombTimeout);
+          //Put bomb on closest multiple of 50 to player's top and left
+          bomb.style.top = Math.ceil(parseInt(player.style.top) / 50) * 50 + "px";
+          bomb.style.left = Math.ceil(parseInt(player.style.left) / 50) * 50 + "px";
+          if (bombTop < wallBlock.bottom && bombBottom > wallBlock.top && bombLeft < wallBlock.right && bombRight > wallBlock.left) {
+            bomb.remove();
+            clearTimeout(bombTimeout);
+          }
           return;
         }
       }
@@ -544,12 +859,66 @@
       for (let i = 0; i < boxBlockPositions.length; i++) {
         let boxBlock = boxBlockPositions[i];
         if (bombTop < boxBlock.bottom && bombBottom > boxBlock.top && bombLeft < boxBlock.right && bombRight > boxBlock.left) {
-          bomb.remove();
-          clearInterval(bombTimeout);
+          bomb.style.top = Math.ceil(parseInt(player.style.top) / 50) * 50 + "px";
+          bomb.style.left = Math.ceil(parseInt(player.style.left) / 50) * 50 + "px";
+          if (bombTop < boxBlock.bottom && bombBottom > boxBlock.top && bombLeft < boxBlock.right && bombRight > boxBlock.left) {
+            bomb.remove();
+            clearTimeout(bombTimeout);
+          }
           return;
         }
       }
+      // Get goal top left right bottom
+      const goalTop = parseInt(goal.style.top);
+      const goalLeft = parseInt(goal.style.left);
+      const goalBottom = goalTop + parseInt(goal.offsetHeight);
+      const goalRight = goalLeft + parseInt(goal.offsetWidth);
+      // Check if bomb is placed on the goal
+      if (bombTop < goalBottom && bombBottom > goalTop && bombLeft < goalRight && bombRight > goalLeft) {
+        bomb.remove();
+        clearTimeout(bombTimeout);
+        // DIALOGUE
+        dialogueWithGoal();
+        return;
+      }
+      // Get key top left right bottom
+      const keyTop = parseInt(key.style.top);
+      const keyLeft = parseInt(key.style.left);
+      const keyBottom = keyTop + parseInt(key.offsetHeight);
+      const keyRight = keyLeft + parseInt(key.offsetWidth);
+      // Check if bomb is placed on the key
+      if (bombTop < keyBottom && bombBottom > keyTop && bombLeft < keyRight && bombRight > keyLeft) {
+        bomb.remove();
+        clearTimeout(bombTimeout);
+        return;
+      }
     };
+
+
+
+
+
+
+    // Handle dialogue with goal
+    function dialogueWithGoal() {
+      // Pause game
+      gamePaused = true
+      startedTimer = false
+      timeAtPause = timer
+      // Fill dialogue box
+      if (keyTouched) {
+        dialogueText.innerText = "Hooray! Thank you for the key.";
+      } else {
+        dialogueText.innerText = "You must find the key to open the door."
+      }
+      dialogueBox.style.display = "block";
+      continueBtnD.addEventListener("click", () => {
+        dialogueBox.style.display = "none";
+        gamePaused = false;
+        startedTimer = true;
+        gameLoop();
+      });
+    }
 
     // Handle putting bomb when pressing spacebar
     document.addEventListener("keydown", (event) => {
@@ -566,6 +935,13 @@
         startedTimer = false;
       }
     };
+
+    const goalBlockPosition = {
+      top: parseInt(goal.style.top) + 5,
+      left: parseInt(goal.style.left) + 10,
+      bottom: parseInt(goal.style.top) + parseInt(goal.offsetHeight) + 5,
+      right: parseInt(goal.style.left) + parseInt(goal.offsetWidth) + 10
+    }
 
     const monsterLookingRight = new Image();
     monsterLookingRight.src = "sprites/goldfish-right.png";
@@ -659,20 +1035,36 @@
           }
         }
 
-        if (playerSlowedBy >= monsterSlowFrameRate) {
+
+        // Monsters can't go to goal position
+        if (monsterTop - 5 <= goalBlockPosition.bottom && monsterBottom > goalBlockPosition.top && monsterLeft > goalBlockPosition.left && monsterRight < goalBlockPosition.right) {
+          monsterBlockedTop = true;
+        }
+        if (monsterRight + 10 >= goalBlockPosition.left && monsterLeft < goalBlockPosition.right && monsterTop > goalBlockPosition.top && monsterBottom < goalBlockPosition.bottom) {
+          monsterBlockedRight = true;
+        }
+        if (monsterBottom + 5 >= goalBlockPosition.top && monsterTop < goalBlockPosition.bottom && monsterLeft > goalBlockPosition.left && monsterRight < goalBlockPosition.right) {
+          monsterBlockedBottom = true;
+        }
+        if (monsterLeft - 10 <= goalBlockPosition.right && monsterRight > goalBlockPosition.left && monsterTop > goalBlockPosition.top && monsterBottom < goalBlockPosition.bottom) {
+          monsterBlockedLeft = true;
+        }
+
+
+        if (slowedBy >= monsterSlowFrameRate) {
           if (monsterDirection === "left") {
             monster.style.backgroundImage = `url(${monsterLookingLeft.src})`;
           } else if (monsterDirection === "right") {
             monster.style.backgroundImage = `url(${monsterLookingRight.src})`;
           }
           drawSprite(monster, monster.animationIndex, 0, 30, 0);
-          playerSlowedBy = 0;
+          slowedBy = 0;
           monster.animationIndex += 1
           if (monster.animationIndex > 1) {
             monster.animationIndex = 0;
           }
         } else {
-          playerSlowedBy += 1;
+          slowedBy += 1;
         }
 
 
@@ -749,8 +1141,9 @@
     playerTransparent.src = "sprites/transparent.png"
 
     let playerYIndex = 0;
-    let playerSlowedBy = 0;
+    let slowedBy = 0;
     let playerSlowFrameRate = 10;
+    let explosionSlowFrameRate = 18;
 
     player.style.backgroundImage = `url(${playerDown.src})`;
 
@@ -760,7 +1153,34 @@
       div.style.backgroundPosition = `${x}px ${y}px`;
     }
 
+    let clockIndex = 0;
+    let clockSlowFrameRate = 10;
 
+    let lastClockChange = 0;
+    const MIN_CLOCK_CHANGE_DELAY = 1000; // 100 milliseconds
+
+    function changeClock() {
+      // Check if enough time has passed since the last clock change
+      const now = Date.now();
+      if (now - lastClockChange < MIN_CLOCK_CHANGE_DELAY) {
+        return;
+      }
+
+      // Update the clock background position
+      if (timer % Math.floor((initialTimer / 8)) === 0) {
+
+        clockIndex += 1;
+        if (clockIndex > 8) {
+          clockIndex = 0;
+        }
+        clock.style.backgroundPosition = `0px -${clockIndex * 50}px`;
+      }
+      console.log(clockIndex);
+
+
+      // Update the last clock change time
+      lastClockChange = now;
+    }
 
 
 
@@ -768,6 +1188,260 @@
 
 
 
+
+
+
+    function touchKey() {
+      let playerTop = parseInt(player.style.top);
+      let playerLeft = parseInt(player.style.left);
+      let playerRight = playerLeft + parseInt(player.offsetWidth);
+      let playerBottom = playerTop + parseInt(player.offsetHeight);
+      let keyTop = parseInt(key.style.top);
+      let keyLeft = parseInt(key.style.left);
+      let keyRight = keyLeft + parseInt(key.offsetWidth);
+      let keyBottom = keyTop + parseInt(key.offsetHeight);
+
+      if (
+        playerLeft < keyRight &&
+        playerRight > keyLeft &&
+        playerTop < keyBottom &&
+        playerBottom > keyTop
+      ) {
+        // Player is touched by key
+        key.style.display = "none";
+        keyTouched = true;
+      }
+    }
+
+    async function touchMonster() {
+      let playerTop = parseInt(player.style.top);
+      let playerLeft = parseInt(player.style.left);
+      let playerRight = playerLeft + parseInt(player.offsetWidth);
+      let playerBottom = playerTop + parseInt(player.offsetHeight);
+
+      for (let i = 0; i < monsters.length; i++) {
+        let monsterX = parseInt(monsters[i].style.left);
+        let monsterY = parseInt(monsters[i].style.top);
+        // Get monster area 30*40
+        let minX = monsterX;
+        let maxX = monsterX + 30;
+        let minY = monsterY;
+        let maxY = monsterY + 40;
+
+        if (
+          playerLeft < maxX &&
+          playerRight > minX &&
+          playerTop < maxY &&
+          playerBottom > minY
+        ) {
+          // Player is touched by monster
+          if (!immune) {
+            lives -= 1;
+            immune = true;
+            //Make player blink
+            let blinking = setInterval(() => {
+              player.style.visibility = (player.style.visibility === 'visible') ? 'hidden' : 'visible';
+            }, 100);
+
+            setTimeout(() => {
+              //Stop player from blinking
+              clearInterval(blinking);
+              player.style.visibility = 'visible';
+              immune = false;
+            }, 2000);
+          }
+        }
+      }
+    }
+
+    let boxSlowFrameRate = 13;
+
+    async function touchExplosion() {
+      let playerTop = parseInt(player.style.top);
+      let playerLeft = parseInt(player.style.left);
+      let playerRight = playerLeft + parseInt(player.offsetWidth);
+      let playerBottom = playerTop + parseInt(player.offsetHeight);
+
+      for (let i = 0; i < explosions.length; i++) {
+        let explosionX = parseInt(explosions[i].style.left);
+        let explosionY = parseInt(explosions[i].style.top);
+
+        //Calculate top, left, right and bottom of first rectangle making the explosion area
+        let minX1 = explosionX - 40;
+        let maxX1 = explosionX + 80;
+        let minY1 = explosionY;
+        let maxY1 = explosionY + 40;
+        //Calculate top, left, right and bottom of second rectangle making the explosion area
+        let minX2 = explosionX;
+        let maxX2 = explosionX + 40;
+        let minY2 = explosionY - 40;
+        let maxY2 = explosionY + 80;
+
+        // Check if player is withing first or second rectangle (with playerTop playerLeft playerRight playerBottom)
+        if (
+          (playerLeft < maxX1 && playerRight > minX1 && playerTop < maxY1 && playerBottom > minY1) ||
+          (playerLeft < maxX2 && playerRight > minX2 && playerTop < maxY2 && playerBottom > minY2)
+        ) {
+          // If player is within explosion area, reduce lives and update lives
+          if (!immune) {
+            lives -= 1;
+            immune = true;
+            //Make player blink
+            let blinking = setInterval(() => {
+              player.style.visibility = (player.style.visibility === 'visible') ? 'hidden' : 'visible';
+            }, 100);
+
+            setTimeout(() => {
+              //Stop player from blinking
+              clearInterval(blinking);
+              player.style.visibility = 'visible';
+              immune = false;
+            }, 2000);
+          }
+        }
+
+        // Check if any box is within first or second rectangle (with playerTop playerLeft playerRight playerBottom)
+        for (let j = 0; j < boxBlockPositions.length; j++) {
+          let boxBlock = boxBlockPositions[j];
+          if (
+            (boxBlock.left < maxX1 && boxBlock.right > minX1 && boxBlock.top < maxY1 && boxBlock.bottom > minY1) ||
+            (boxBlock.left < maxX2 && boxBlock.right > minX2 && boxBlock.top < maxY2 && boxBlock.bottom > minY2)
+          ) {
+            // If box is within explosion area, remove box that has these coordinates
+            for (let k = 0; k < boxBlocks.length; k++) {
+              let boxToRemove = boxBlocks[k];
+              if (boxToRemove.style.left === `${boxBlock.left}px` && boxToRemove.style.top === `${boxBlock.top}px`) {
+                let burnBox = setInterval(() => {
+                  let boxYIndex = parseInt(boxToRemove.dataset.frame);
+                  if (slowedBy >= boxSlowFrameRate) {
+                    drawSprite(boxToRemove, 0, boxYIndex, 0, -50);
+                    slowedBy = 0;
+                    boxYIndex += 1
+                    boxToRemove.dataset.frame = boxYIndex;
+                    if (boxYIndex > 6) {
+                      clearInterval(burnBox);
+                      boxToRemove.remove();
+                    }
+                  } else {
+                    slowedBy += 1;
+                  }
+                }, 100)
+                score += 10;
+              }
+            }
+          }
+        }
+
+        // Update boxBlockPositions
+        boxBlockPositions = [];
+        for (let i = 0; i < boxBlocks.length; i++) {
+          let boxBlock = boxBlocks[i];
+          let boxBlockTop = parseInt(boxBlock.style.top);
+          let boxBlockLeft = parseInt(boxBlock.style.left);
+          let boxBlockRight = boxBlockLeft + parseInt(boxBlock.offsetWidth);
+          let boxBlockBottom = boxBlockTop + parseInt(boxBlock.offsetHeight);
+          boxBlockPositions.push({
+            top: boxBlockTop,
+            left: boxBlockLeft,
+            right: boxBlockRight,
+            bottom: boxBlockBottom
+          });
+        }
+
+        // Check if any monster is within first or second rectangle 
+        let monsterPositions = []
+        for (let j = 0; j < monsters.length; j++) {
+          let monster = monsters[j];
+          let monsterTop = parseInt(monster.style.top);
+          let monsterLeft = parseInt(monster.style.left);
+          let monsterRight = monsterLeft + parseInt(monster.offsetWidth);
+          let monsterBottom = monsterTop + parseInt(monster.offsetHeight);
+          monsterPositions.push({
+            top: monsterTop,
+            left: monsterLeft,
+            right: monsterRight,
+            bottom: monsterBottom
+          });
+        }
+        for (let j = 0; j < monsterPositions.length; j++) {
+          let monsterBlock = monsterPositions[j];
+          if (
+            (monsterBlock.left < maxX1 && monsterBlock.right > minX1 && monsterBlock.top < maxY1 && monsterBlock.bottom > minY1) ||
+            (monsterBlock.left < maxX2 && monsterBlock.right > minX2 && monsterBlock.top < maxY2 && monsterBlock.bottom > minY2)
+          ) {
+            // If monster is within explosion area, remove monster that has these coordinates
+            for (let k = 0; k < monsters.length; k++) {
+              let monsterToRemove = monsters[k];
+              if (monsterToRemove.style.left === `${monsterBlock.left}px` && monsterToRemove.style.top === `${monsterBlock.top}px`) {
+                monsterToRemove.remove();
+                score += 200;
+              }
+            }
+          }
+        }
+
+      }
+
+      // Reset game and map function
+      const resetGame = () => {
+        // Reset game variables
+        score = 0;
+        lives = 3;
+        timer = 180;
+        // Reset game screen
+        gameContainer.style.display = 'flex';
+        gameOverScreen.style.display = 'none';
+        // Reset player position
+        playerX = 60;
+        playerY = 60;
+        player.style.left = playerX + "px";
+        player.style.top = playerY + "px";
+
+
+        // Reset boxes
+        for (let i = 0; i < boxBlocks.length; i++) {
+          boxBlocks[i].remove();
+        }
+        boxBlocks = [];
+        // Reset keys
+        for (let i = 0; i < keys.length; i++) {
+          keys[i].remove();
+        }
+        keys = [];
+        // Reset monsters
+        for (let i = 0; i < monsters.length; i++) {
+          monsters[i].remove();
+        }
+        monsters = [];
+
+        //Respawn monsters
+
+        // Reset game loop
+        requestAnimationFrame(gameLoop);
+      }
+
+
+
+      // Update metrics
+      updateMetrics();
+      // Check for end game conditions
+      if (timer <= 0 || lives <= 0) {
+        // End game
+        // Show game over screen with score and restard button
+        gameOverScore.innerText = `${score}`;
+        gameOverScreen.style.display = 'flex';
+        gameContainer.style.display = 'none';
+      } else {
+        requestAnimationFrame(gameLoop);
+      }
+    }
+
+    //start with player and bomb in random positions within the board
+    let playerX = 60
+    let playerY = 60
+
+    player.style.left = playerX + "px";
+    player.style.top = playerY + "px";
 
     // Game loop using requestAnimationFrame
     const gameLoop = () => {
@@ -777,6 +1451,9 @@
         moveMonsters();
         touchExplosion();
         touchMonster();
+        touchKey();
+        changeClock();
+
 
         // Animation stuff
         if (moving) {
@@ -789,16 +1466,16 @@
           } else if (moveRight) {
             player.style.backgroundImage = `url(${playerRollRightImg.src})`;
           }
-          if (playerSlowedBy >= playerSlowFrameRate) {
+          if (slowedBy >= playerSlowFrameRate) {
 
             drawSprite(player, 0, playerYIndex, 0, 40);
-            playerSlowedBy = 0;
+            slowedBy = 0;
             playerYIndex += 1
             if (playerYIndex > 7) {
               playerYIndex = 0;
             }
           } else {
-            playerSlowedBy += 1;
+            slowedBy += 1;
           }
         } else {
           if (lookingDown) {
@@ -866,7 +1543,7 @@
           }
 
           // Find next intersection with bomb
-          for (let i = 0; i < bombPositions.length; i++) {
+          /* for (let i = 0; i < bombPositions.length; i++) {
             let bomb = bombPositions[i];
             if (
               playerLeft - 3 < bomb.right &&
@@ -877,7 +1554,7 @@
               intersects = true;
               break;
             }
-          }
+          } */
 
           // If new player position is not wallBlockPosition, update player position
           if (!intersects) {
@@ -914,19 +1591,19 @@
           }
 
           // Find next intersection with bomb
-          for (let i = 0; i < bombPositions.length; i++) {
-            let bomb = bombPositions[i];
-            if (
-              playerLeft < bomb.right - 10 &&
-              playerRight + 20 >= bomb.left &&
-              playerTop < bomb.bottom &&
-              playerBottom > bomb.top
-            ) {
-              intersects = true;
-              break;
-            }
-          }
-
+          /*  for (let i = 0; i < bombPositions.length; i++) {
+             let bomb = bombPositions[i];
+             if (
+               playerLeft < bomb.right - 10 &&
+               playerRight + 20 >= bomb.left &&
+               playerTop < bomb.bottom &&
+               playerBottom > bomb.top
+             ) {
+               intersects = true;
+               break;
+             }
+           }
+  */
           // If new player position is not wallBlockPosition, update player position
           if (!intersects) {
             player.style.left = parseInt(player.style.left) + 3 + "px";
@@ -962,18 +1639,18 @@
           }
 
           // Find next intersection with bomb
-          for (let i = 0; i < bombPositions.length; i++) {
-            let bomb = bombPositions[i];
-            if (
-              playerLeft < bomb.right &&
-              playerRight > bomb.left &&
-              playerTop - 4 < bomb.bottom &&
-              playerBottom > bomb.top + 10
-            ) {
-              intersects = true;
-              break;
-            }
-          }
+          /*    for (let i = 0; i < bombPositions.length; i++) {
+               let bomb = bombPositions[i];
+               if (
+                 playerLeft < bomb.right &&
+                 playerRight > bomb.left &&
+                 playerTop - 4 < bomb.bottom &&
+                 playerBottom > bomb.top + 10
+               ) {
+                 intersects = true;
+                 break;
+               }
+             } */
 
           // If new player position is not wallBlockPosition, update player position
           if (!intersects) {
@@ -1011,18 +1688,18 @@
           }
 
           // Find next intersection with bomb
-          for (let i = 0; i < bombPositions.length; i++) {
-            let bomb = bombPositions[i];
-            if (
-              playerLeft < bomb.right &&
-              playerRight > bomb.left &&
-              playerTop < bomb.bottom - 10 &&
-              playerBottom + 10 > bomb.top
-            ) {
-              intersects = true;
-              break;
-            }
-          }
+          /*     for (let i = 0; i < bombPositions.length; i++) {
+                let bomb = bombPositions[i];
+                if (
+                  playerLeft < bomb.right &&
+                  playerRight > bomb.left &&
+                  playerTop < bomb.bottom - 10 &&
+                  playerBottom + 10 > bomb.top
+                ) {
+                  intersects = true;
+                  break;
+                }
+              } */
 
           // If new player position is not wallBlockPosition, update player position
           if (!intersects) {
@@ -1033,221 +1710,10 @@
       }
     };
 
-    async function touchMonster() {
-      let playerTop = parseInt(player.style.top);
-      let playerLeft = parseInt(player.style.left);
-      let playerRight = playerLeft + parseInt(player.offsetWidth);
-      let playerBottom = playerTop + parseInt(player.offsetHeight);
-
-      for (let i = 0; i < monsters.length; i++) {
-        let monsterX = parseInt(monsters[i].style.left);
-        let monsterY = parseInt(monsters[i].style.top);
-        // Get monster area 30*40
-        let minX = monsterX;
-        let maxX = monsterX + 30;
-        let minY = monsterY;
-        let maxY = monsterY + 40;
-
-        if (
-          playerLeft < maxX &&
-          playerRight > minX &&
-          playerTop < maxY &&
-          playerBottom > minY
-        ) {
-          // Player is touched by monster
-          if (!immune) {
-            lives -= 1;
-            immune = true;
-            //Make player blink
-            let blinking = setInterval(() => {
-              player.style.visibility = (player.style.visibility === 'visible') ? 'hidden' : 'visible';
-            }, 100);
-
-            setTimeout(() => {
-              //Stop player from blinking
-              clearInterval(blinking);
-              player.style.visibility = 'visible';
-              immune = false;
-            }, 2000);
-          }
-        }
-      }
+    if (pageAccessedByReload) {
+      //click start button
+      startButton.click();
     }
-
-    async function touchExplosion() {
-      let playerTop = parseInt(player.style.top);
-      let playerLeft = parseInt(player.style.left);
-      let playerRight = playerLeft + parseInt(player.offsetWidth);
-      let playerBottom = playerTop + parseInt(player.offsetHeight);
-
-      for (let i = 0; i < explosions.length; i++) {
-        let explosionX = parseInt(explosions[i].style.left);
-        let explosionY = parseInt(explosions[i].style.top);
-
-        //Calculate top, left, right and bottom of first rectangle making the explosion area
-        let minX1 = explosionX - 40;
-        let maxX1 = explosionX + 80;
-        let minY1 = explosionY;
-        let maxY1 = explosionY + 40;
-        //Calculate top, left, right and bottom of second rectangle making the explosion area
-        let minX2 = explosionX;
-        let maxX2 = explosionX + 40;
-        let minY2 = explosionY - 40;
-        let maxY2 = explosionY + 80;
-
-        // Check if player is withing first or second rectangle (with playerTop playerLeft playerRight playerBottom)
-        if (
-          (playerLeft < maxX1 && playerRight > minX1 && playerTop < maxY1 && playerBottom > minY1) ||
-          (playerLeft < maxX2 && playerRight > minX2 && playerTop < maxY2 && playerBottom > minY2)
-        ) {
-          // If player is within explosion area, reduce lives and update lives
-          if (!immune) {
-            lives -= 1;
-            immune = true;
-            //Make player blink
-            let blinking = setInterval(() => {
-              player.style.visibility = (player.style.visibility === 'visible') ? 'hidden' : 'visible';
-            }, 100);
-
-            setTimeout(() => {
-              //Stop player from blinking
-              clearInterval(blinking);
-              player.style.visibility = 'visible';
-              immune = false;
-            }, 2000);
-          }
-        }
-
-        // Check if any box is within first or second rectangle (with playerTop playerLeft playerRight playerBottom)
-        for (let j = 0; j < boxBlockPositions.length; j++) {
-          let boxBlock = boxBlockPositions[j];
-          if (
-            (boxBlock.left < maxX1 && boxBlock.right > minX1 && boxBlock.top < maxY1 && boxBlock.bottom > minY1) ||
-            (boxBlock.left < maxX2 && boxBlock.right > minX2 && boxBlock.top < maxY2 && boxBlock.bottom > minY2)
-          ) {
-            // If box is within explosion area, remove box that has these coordinates
-            for (let k = 0; k < boxBlocks.length; k++) {
-              let boxToRemove = boxBlocks[k];
-              if (boxToRemove.style.left === `${boxBlock.left}px` && boxToRemove.style.top === `${boxBlock.top}px`) {
-                boxToRemove.remove();
-                score += 10;
-              }
-            }
-          }
-        }
-
-        // Update boxBlockPositions
-        boxBlockPositions = [];
-        for (let i = 0; i < boxBlocks.length; i++) {
-          let boxBlock = boxBlocks[i];
-          let boxBlockTop = parseInt(boxBlock.style.top);
-          let boxBlockLeft = parseInt(boxBlock.style.left);
-          let boxBlockRight = boxBlockLeft + parseInt(boxBlock.offsetWidth);
-          let boxBlockBottom = boxBlockTop + parseInt(boxBlock.offsetHeight);
-          boxBlockPositions.push({
-            top: boxBlockTop,
-            left: boxBlockLeft,
-            right: boxBlockRight,
-            bottom: boxBlockBottom
-          });
-        }
-
-        // Check if any monster is within first or second rectangle 
-        let monsterPositions = []
-        for (let j = 0; j < monsters.length; j++) {
-          let monster = monsters[j];
-          let monsterTop = parseInt(monster.style.top);
-          let monsterLeft = parseInt(monster.style.left);
-          let monsterRight = monsterLeft + parseInt(monster.offsetWidth);
-          let monsterBottom = monsterTop + parseInt(monster.offsetHeight);
-          monsterPositions.push({
-            top: monsterTop,
-            left: monsterLeft,
-            right: monsterRight,
-            bottom: monsterBottom
-          });
-        }
-        for (let j = 0; j < monsterPositions.length; j++) {
-          let monsterBlock = monsterPositions[j];
-          if (
-            (monsterBlock.left < maxX1 && monsterBlock.right > minX1 && monsterBlock.top < maxY1 && monsterBlock.bottom > minY1) ||
-            (monsterBlock.left < maxX2 && monsterBlock.right > minX2 && monsterBlock.top < maxY2 && monsterBlock.bottom > minY2)
-          ) {
-            // If monster is within explosion area, remove monster that has these coordinates
-            for (let k = 0; k < monsters.length; k++) {
-              let monsterToRemove = monsters[k];
-              if (monsterToRemove.style.left === `${monsterBlock.left}px` && monsterToRemove.style.top === `${monsterBlock.top}px`) {
-                monsterToRemove.remove();
-                score += 200;
-              }
-            }
-          }
-        }
-
-      }
-
-
-      // Update metrics
-      updateMetrics();
-      // Check for end game conditions
-      if (timer <= 0 || lives <= 0) {
-        // End game
-        // Show game over screen with score and restard button
-        let gameOverScreen = document.createElement('div');
-        gameOverScreen.style.display = 'flex';
-        gameOverScreen.style.flexDirection = 'column';
-        gameOverScreen.style.alignItems = 'center';
-        gameOverScreen.style.justifyContent = 'center';
-        gameOverScreen.style.position = 'absolute';
-        gameOverScreen.style.top = '0';
-        gameOverScreen.style.left = '0';
-        gameOverScreen.style.width = '100%';
-        gameOverScreen.style.height = '100%';
-        gameOverScreen.style.background = 'rgba(0, 0, 0, 0.5)';
-        gameOverScreen.style.zIndex = '1000';
-        let gameOverText = document.createElement('h1');
-        gameOverText.innerText = 'Game Over';
-        gameOverText.style.color = 'white';
-        gameOverText.style.fontSize = '50px';
-        gameOverText.style.margin = '0';
-        gameOverText.style.padding = '0';
-        gameOverScreen.appendChild(gameOverText);
-        let gameOverScore = document.createElement('h2');
-        gameOverScore.innerText = `Score: ${score}`;
-        gameOverScore.style.color = 'white';
-        gameOverScore.style.fontSize = '30px';
-        gameOverScore.style.margin = '0';
-        gameOverScore.style.padding = '0';
-        gameOverScreen.appendChild(gameOverScore);
-        let restartButton = document.createElement('button');
-        restartButton.innerText = 'Play again';
-        restartButton.style.background = 'white';
-        restartButton.style.color = 'black';
-        restartButton.style.fontSize = '20px';
-        restartButton.style.padding = '32px 16px';
-        restartButton.style.border = 'none';
-        restartButton.style.borderRadius = '5px';
-        restartButton.style.cursor = 'pointer';
-        restartButton.style.marginTop = '20px';
-        restartButton.addEventListener('click', () => {
-          // Restart game
-          location.reload();
-        });
-        gameOverScreen.appendChild(restartButton);
-        document.body.appendChild(gameOverScreen);
-      } else {
-        requestAnimationFrame(gameLoop);
-      }
-    }
-
-    // Start game
-    gameLoop();
-    //start with player and bomb in random positions within the board
-    let playerX = 60
-    let playerY = 60
-
-    player.style.left = playerX + "px";
-    player.style.top = playerY + "px";
   </script>
 </body>
 
