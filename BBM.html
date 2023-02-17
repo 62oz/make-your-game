@@ -265,6 +265,36 @@
       font-size: 50px;
       color: white;
     }
+
+    #leaderboard {
+      display: none;
+      position: relative;
+      top: 15%;
+      left: -33.37%;
+      float: left;
+      width: 250px;
+      height: 500px;
+      background-image: url("sprites/leaderboard.png");
+    }
+
+    #leaderboard-content {
+      position: absolute;
+      top: 25%;
+      left: 28%;
+      font-size: 30px;
+      color: white;
+    }
+
+    #game-over-form {
+      display: none;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 750px;
+      height: 750px;
+      z-index: 1000;
+    }
   </style>
 </head>
 
@@ -306,7 +336,14 @@
   </div>
   <div id="game-over-screen">
     <div id="game-over-score"></div>
+    <form id="game-over-form">
+      <input type="text" id="game-over-name" name="name" placeholder="Enter your name">
+      <input type="submit" id="game-over-submit" value="Submit">
+    </form>
     <button id="restart-btn2"></button>
+    <div id="leaderboard">
+      <div id="leaderboard-content"></div>
+    </div>
   </div>
 
 
@@ -362,9 +399,11 @@
     const dialogueText = document.getElementById("dialogue-text");
     const wallBlock = document.getElementsByClassName("wallBlock");
     const gameOverScreen = document.getElementById("game-over-screen");
+    const leaderboard = document.getElementById("leaderboard");
     const startBtn = document.getElementById("start-btn");
     const hearts = document.getElementsByClassName("heart");
     const overlay = document.getElementById("overlay");
+    const leaderboardContent = document.getElementById("leaderboard-content");
 
     startBtn.style.width = "275px"
     startBtn.style.height = "80px"
@@ -1253,6 +1292,48 @@
         }
       }
     }
+    function getLeaderboardData() {
+      fetch('http://localhost:8080/')
+        .then(response => response.json())
+        .then(data => {
+          console.log(data)
+          if (data) {
+            if (data.length > 0) {
+              console.log("hohohoh")
+              // Update leaderboard
+              for (let i = 0; i < data.length; i++) {
+                let player = data[i];
+                let playerRow = document.createElement('div');
+                playerRow.classList.add('player-row');
+                if (player.name.length < 1) {
+                  player.name = "ABC";
+                }
+                playerRow.innerHTML = `
+              <div class="player-name-score">${player.name} ${player.score}</div>`;
+                leaderboardContent.appendChild(playerRow);
+              }
+            }
+
+            // If length of data is less than 10, add empty rows with dashes
+            if (data.length < 10 || data.length === 0) {
+              console.log("hehehe")
+              for (let i = 0; i < 10 - data.length; i++) {
+                let playerRow = document.createElement('div');
+                playerRow.classList.add('player-row');
+                playerRow.innerHTML = `
+                <div class="player-name-score">--- ------</div>`;
+                leaderboardContent.appendChild(playerRow);
+              }
+            }
+
+
+          }
+        })
+        .catch(error => {
+          console.log(error)
+        });
+
+    }
 
     let boxSlowFrameRate = 13;
 
@@ -1391,6 +1472,7 @@
         // Reset game screen
         gameContainer.style.display = 'flex';
         gameOverScreen.style.display = 'none';
+        leaderboard.style.display = 'none';
         // Reset player position
         playerX = 60;
         playerY = 60;
@@ -1429,7 +1511,10 @@
         // End game
         // Show game over screen with score and restard button
         gameOverScore.innerText = `${score}`;
-        gameOverScreen.style.display = 'flex';
+        gameOverScreen.style.display = 'flex';    // get json data for leaderboard content
+        getLeaderboardData();
+
+        leaderboard.style.display = 'block';
         gameContainer.style.display = 'none';
       } else {
         requestAnimationFrame(gameLoop);
