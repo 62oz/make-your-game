@@ -1,0 +1,378 @@
+:root {
+    --cursorXPos: 50vw;
+    --cursorYPos: 50vh;
+  }
+
+  :root[dark]::before {
+    content: "";
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle 5rem at var(--cursorXPos) var(--cursorYPos),
+        rgba(255, 255, 255, 0) 0%, rgba(19, 2, 2, 0.95) 100%);
+    z-index: 11;
+  }
+
+  body {
+    background-color: black;
+    font-family: "VT323", monospace;
+
+  }
+
+  #game-container {
+    display: absolute;
+    align-items: center;
+  }
+
+  #static-board {
+    visibility: hidden;
+    width: 830px;
+    height: 750px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border: 1px solid black;
+    background-image: url("sprites/blue-tile-small.png");
+    background-repeat: repeat;
+    background-size: 50px 50px;
+    position: absolute;
+  }
+
+  #dynamic-board {
+    z-index: 2;
+  }
+
+  #score-board {
+    font-size: 20px;
+    color: white;
+    margin-bottom: 10px;
+    position: absolute;
+    bottom: 0px;
+  }
+
+  #countdown-clock {
+    font-size: 20px;
+    margin-bottom: 10px;
+    color: white;
+    position: absolute;
+    bottom: 50px;
+  }
+
+  #lives {
+    font-size: 20px;
+    margin-bottom: 10px;
+    color: white;
+    position: relative;
+    top: 5%;
+  }
+
+  #pause-menu {
+    display: none;
+    width: 250px;
+    height: 250px;
+    position: absolute;
+    background-image: url("sprites/pause-menu-smaller.png");
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 20px;
+    text-align: center;
+    z-index: 12;
+  }
+
+  #dialogue-box {
+    display: none;
+    width: 500px;
+    height: 295px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-image: url("sprites/dialogue1.png");
+  }
+
+  #dialogue-box2 {
+    display: none;
+    width: 500px;
+    height: 295px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-image: url("sprites/dialogue2.png");
+  }
+
+  button {
+    width: 200px;
+    height: 80px;
+    font-family: "VT323", monospace;
+    cursor: pointer;
+  }
+
+  .bomb {
+    width: 40px;
+    height: 40px;
+    background-image: url("sprites/bomb.png");
+    position: absolute;
+  }
+
+  #player {
+    width: 30px;
+    height: 40px;
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+
+  .monster {
+    width: 30px;
+    height: 40px;
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+
+  .explosion {
+    height: 140px;
+    position: relative;
+    /*       background-image: url("sprites/fireworks-ver.png");
+*/
+  }
+
+  #main-menu {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    background-image: url("sprites/start-menu5.png");
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 830px;
+    height: 750px;
+    z-index: 1000;
+    /*       image-rendering: pixelated;
+*/
+  }
+
+  #side {
+    position: relative;
+    float: right;
+    width: 80px;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+  }
+
+  .title {
+    color: white;
+    font-size: 50px;
+    margin-bottom: 20px;
+  }
+
+  .wallBlock {
+    width: 50px;
+    height: 50px;
+    background-image: url("sprites/festival-stand.png");
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 0;
+  }
+
+  .boxBlock {
+    width: 50px;
+    height: 50px;
+    background-image: url("sprites/Lantern-burning.png");
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+
+  #start-btn {
+    width: 275px;
+    height: 80px;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    position: absolute;
+    top: 83%;
+  }
+
+
+  .heart {
+    width: 30px;
+    height: 40px;
+    margin-bottom: 10px;
+    background-image: url("sprites/daruma-down.png");
+    position: relative;
+    top: 0;
+    left: 30%;
+    visibility: visible;
+  }
+
+  #game-over-screen {
+    display: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-55.4%, -50%);
+    width: 750px;
+    height: 750px;
+    background-image: url("sprites/game-over.png");
+    z-index: 1000;
+  }
+
+  #restart-btn2 {
+    width: 310px;
+    height: 160px;
+    margin: 10px;
+    top: 70%;
+    left: 28%;
+    position: absolute;
+    cursor: pointer;
+    background-color: transparent;
+    border: none;
+  }
+
+  #clock {
+    width: 50px;
+    height: 50px;
+    background-image: url("sprites/eclipse-cycle.png");
+    position: relative;
+    top: 0;
+    left: 30%;
+    visibility: visible;
+  }
+
+  #overlay {
+    position: fixed;
+    display: none;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+  }
+
+  #overlay2-quarter1 {
+    position: absolute;
+    display: none;
+    width: 900px;
+    height: 810px;
+    background-color: rgba(71, 9, 9, 0.5)
+  }
+
+  #overlay2-quarter2 {
+    position: absolute;
+    display: none;
+    width: 900px;
+    height: 810px;
+    background-color: rgba(71, 9, 9, 0.5)
+  }
+
+  #overlay2-quarter3 {
+    position: absolute;
+    display: none;
+    width: 900px;
+    height: 810px;
+    background-color: rgba(71, 9, 9, 0.5)
+  }
+
+  #overlay2-quarter4 {
+    position: absolute;
+    display: none;
+    width: 900px;
+    height: 810px;
+    background-color: rgba(71, 9, 9, 0.5)
+  }
+
+  #continue-btnD {
+    width: 180px;
+    height: 100px;
+    margin: 10px;
+    top: 60%;
+    left: 30%;
+    position: relative;
+    cursor: pointer;
+    background-color: transparent;
+    border: none;
+  }
+
+  #continue-btnD2 {
+    width: 180px;
+    height: 100px;
+    margin: 10px;
+    top: 60%;
+    left: 30%;
+    position: relative;
+    cursor: pointer;
+    background-color: transparent;
+    border: none;
+  }
+
+  #continue-btn {
+    width: 250px;
+    height: 120px;
+    margin: 10px;
+    top: 0;
+    left: 5%;
+    position: absolute;
+    cursor: pointer;
+    background-color: transparent;
+    border: none;
+  }
+
+  #restart-btn {
+    width: 250px;
+    height: 120px;
+    margin: 10px;
+    top: 55%;
+    left: 5%;
+    position: absolute;
+    cursor: pointer;
+    background-color: transparent;
+    border: none;
+  }
+
+  #game-over-score {
+    position: absolute;
+    top: 53%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 50px;
+    color: white;
+  }
+
+  #leaderboard {
+    display: none;
+    position: relative;
+    top: 15%;
+    left: -33.37%;
+    float: left;
+    width: 250px;
+    height: 500px;
+    background-image: url("sprites/leaderboard.png");
+  }
+
+  #leaderboard-content {
+    position: absolute;
+    top: 25%;
+    left: 28%;
+    font-size: 30px;
+    color: white;
+  }
+
+  #game-over-form {
+    display: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 750px;
+    height: 750px;
+    z-index: 1000;
+  }
