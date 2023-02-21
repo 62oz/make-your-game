@@ -1,8 +1,42 @@
 import { getLeaderboardData } from './leaderboard.js'
 
 export function Level2 () {
-  console.log('LEVEL 2 MADAFAKA')
   // START LEVEL 2
+
+  // AUDIOS
+  const mainMusic = document.getElementById('main-music')
+  const level1Music = document.getElementById('level1-music')
+  const level2Music = document.getElementById('level2-music')
+  const level3Music = document.getElementById('level3-music')
+  const putBombSound = document.getElementById('put-bomb-sound')
+  const explosionSound = document.getElementById('explosion-sound')
+  const monsterDeathSound = document.getElementById('monster-death')
+  const burnSound = document.getElementById('burn-sound')
+  const gameOverMusic = document.getElementById('game-over-music')
+
+  // Function to mute/unmute sound
+  const muteBtn = document.getElementById('mute-btn')
+  muteBtn.addEventListener('click', () => {
+    mainMusic.muted = !mainMusic.muted
+    level1Music.muted = !level1Music.muted
+    level2Music.muted = !level2Music.muted
+    level3Music.muted = !level3Music.muted
+    putBombSound.muted = !putBombSound.muted
+    explosionSound.muted = !explosionSound.muted
+    monsterDeathSound.muted = !monsterDeathSound.muted
+    burnSound.muted = !burnSound.muted
+    gameOverMusic.muted = !gameOverMusic.muted
+    level2Music.play()
+  })
+
+  // Pause other music
+  level1Music.pause()
+  level3Music.pause()
+  gameOverMusic.pause()
+  mainMusic.pause()
+
+  // Play level 2 music
+  level2Music.play()
 
   const pageAccessedByReload =
     (window.performance.navigation &&
@@ -519,6 +553,7 @@ export function Level2 () {
     // Create a new bomb element
     const bomb = document.createElement('div')
     bomb.classList.add('bomb')
+    putBombSound.play()
 
     switch (true) {
       case lookingLeft:
@@ -564,11 +599,13 @@ export function Level2 () {
       document.getElementById('dynamic-board').appendChild(explosion)
       startExplosion(explosion)
 
+      explosionSound.play()
+
       // explosion disappears after 1 second
       setTimeout(() => {
         explosion.remove()
       }, 1000)
-    }, 3000)
+    }, 2400)
 
     setTimeout(() => {
       // Animate bomb
@@ -1133,6 +1170,7 @@ export function Level2 () {
               boxToRemove.style.left === `${boxBlock.left}px` &&
               boxToRemove.style.top === `${boxBlock.top}px`
             ) {
+              burnSound.play()
               let burnBox = setInterval(() => {
                 let boxYIndex = parseInt(boxToRemove.dataset.frame)
                 if (slowedBy >= boxSlowFrameRate) {
@@ -1204,6 +1242,7 @@ export function Level2 () {
               monsterToRemove.style.left === `${monsterBlock.left}px` &&
               monsterToRemove.style.top === `${monsterBlock.top}px`
             ) {
+              monsterDeathSound.play()
               monsterToRemove.remove()
               score += 200
             }
@@ -1258,6 +1297,7 @@ export function Level2 () {
       // Show game over screen with score and restard button
       gameOverScore.innerText = `${score}`
       gameOverScreen.style.display = 'flex' // get json data for leaderboard content
+      gameOverMusic.play()
       getLeaderboardData(score)
 
       leaderboard.style.display = 'block'

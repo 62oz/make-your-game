@@ -9,14 +9,59 @@ export function Level1 () {
       .map(nav => nav.type)
       .includes('reload')
 
+  // AUDIOS
+  const mainMusic = document.getElementById('main-music')
+  const level1Music = document.getElementById('level1-music')
+  const level2Music = document.getElementById('level2-music')
+  const level3Music = document.getElementById('level3-music')
+  const putBombSound = document.getElementById('put-bomb-sound')
+  const explosionSound = document.getElementById('explosion-sound')
+  const monsterDeathSound = document.getElementById('monster-death')
+  const burnSound = document.getElementById('burn-sound')
+  const keySound = document.getElementById('key-sound')
+  const gameOverMusic = document.getElementById('game-over-music')
+
+  // Function to mute/unmute sound
+  const muteBtn = document.getElementById('mute-btn')
+  muteBtn.addEventListener('click', () => {
+    mainMusic.muted = !mainMusic.muted
+    level1Music.muted = !level1Music.muted
+    level2Music.muted = !level2Music.muted
+    level3Music.muted = !level3Music.muted
+    putBombSound.muted = !putBombSound.muted
+    explosionSound.muted = !explosionSound.muted
+    monsterDeathSound.muted = !monsterDeathSound.muted
+    burnSound.muted = !burnSound.muted
+    keySound.muted = !keySound.muted
+    gameOverMusic.muted = !gameOverMusic.muted
+    if (mainMenu.style.display === 'flex') {
+      mainMusic.play()
+    } else {
+      level1Music.play()
+    }
+  })
+
+  // Pause other music
+  level2Music.pause()
+  level3Music.pause()
+  gameOverMusic.pause()
+
   const staticBoard = document.getElementById('static-board')
   //Main menu
   const mainMenu = document.getElementById('main-menu')
+
   mainMenu.style.display = 'flex'
+  if (mainMenu.style.display === 'flex') {
+    mainMusic.play()
+  } else {
+    mainMusic.pause()
+  }
   const startButton = document.getElementById('start-btn')
   startButton.addEventListener('click', () => {
     // Start game
     mainMenu.style.display = 'none'
+    mainMusic.pause()
+    level1Music.play()
     mainMenu.remove()
     staticBoard.style.visibility = 'visible'
     gameLoop()
@@ -410,6 +455,7 @@ export function Level1 () {
         gamePaused = !gamePaused
         startedTimer = false
         if (gamePaused) {
+          level1Music.pause()
           overlay.style.display = 'block'
           timeAtPause = timer
           pauseMenu.style.display = 'block'
@@ -418,6 +464,7 @@ export function Level1 () {
             timer = timeAtPause
             updateMetrics()
           }
+          level1Music.play()
           gamePaused = false
           overlay.style.display = 'none'
           pauseMenu.style.display = 'none'
@@ -471,6 +518,7 @@ export function Level1 () {
     // Create a new bomb element
     const bomb = document.createElement('div')
     bomb.classList.add('bomb')
+    putBombSound.play()
 
     switch (true) {
       case lookingLeft:
@@ -515,12 +563,13 @@ export function Level1 () {
       // Add explosion to game board
       document.getElementById('dynamic-board').appendChild(explosion)
       startExplosion(explosion)
+      explosionSound.play()
 
       // explosion disappears after 1 second
       setTimeout(() => {
         explosion.remove()
       }, 1000)
-    }, 3000)
+    }, 2400)
 
     setTimeout(() => {
       // Animate bomb
@@ -1053,6 +1102,7 @@ export function Level1 () {
       key.style.display = 'none'
       manekiNeko.style.visibility = 'visible'
       keyTouched = true
+      keySound.play()
     }
   }
 
@@ -1171,6 +1221,7 @@ export function Level1 () {
               boxToRemove.style.left === `${boxBlock.left}px` &&
               boxToRemove.style.top === `${boxBlock.top}px`
             ) {
+              burnSound.play()
               let burnBox = setInterval(() => {
                 let boxYIndex = parseInt(boxToRemove.dataset.frame)
                 if (slowedBy >= boxSlowFrameRate) {
@@ -1242,50 +1293,13 @@ export function Level1 () {
               monsterToRemove.style.left === `${monsterBlock.left}px` &&
               monsterToRemove.style.top === `${monsterBlock.top}px`
             ) {
+              monsterDeathSound.play()
               monsterToRemove.remove()
               score += 200
             }
           }
         }
       }
-    }
-
-    // Reset game and map function
-    const resetGame = () => {
-      // Reset game variables
-      score = 0
-      lives = 3
-      timer = 180
-      // Reset game screen
-      gameContainer.style.display = 'flex'
-      gameOverScreen.style.display = 'none'
-      leaderboard.style.display = 'none'
-      // Reset player position
-      playerX = 60
-      playerY = 60
-      player.style.left = playerX + 'px'
-      player.style.top = playerY + 'px'
-
-      // Reset boxes
-      for (let i = 0; i < boxBlocks.length; i++) {
-        boxBlocks[i].remove()
-      }
-      boxBlocks = []
-      // Reset keys
-      for (let i = 0; i < keys.length; i++) {
-        keys[i].remove()
-      }
-      keys = []
-      // Reset monsters
-      for (let i = 0; i < monsters.length; i++) {
-        monsters[i].remove()
-      }
-      monsters = []
-
-      //Respawn monsters
-
-      // Reset game loop
-      requestAnimationFrame(gameLoop)
     }
 
     // Update metrics
@@ -1296,6 +1310,8 @@ export function Level1 () {
       // Show game over screen with score and restard button
       gameOverScore.innerText = `${score}`
       gameOverScreen.style.display = 'flex' // get json data for leaderboard content
+      gameOverMusic.play()
+
       getLeaderboardData(score)
 
       leaderboard.style.display = 'block'

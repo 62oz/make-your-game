@@ -3,6 +3,38 @@ import { getLeaderboardData } from './leaderboard.js'
 export function Level3 () {
   // LEVEL 3
 
+  // AUDIOS
+  const mainMusic = document.getElementById('main-music')
+  const level1Music = document.getElementById('level1-music')
+  const level2Music = document.getElementById('level2-music')
+  const level3Music = document.getElementById('level3-music')
+  const putBombSound = document.getElementById('put-bomb-sound')
+  const explosionSound = document.getElementById('explosion-sound')
+  const moanSound = document.getElementById('moan-sound')
+  const gameOverMusic = document.getElementById('game-over-music')
+
+  // Function to mute/unmute sound
+  const muteBtn = document.getElementById('mute-btn')
+  muteBtn.addEventListener('click', () => {
+    mainMusic.muted = !mainMusic.muted
+    level1Music.muted = !level1Music.muted
+    level2Music.muted = !level2Music.muted
+    level3Music.muted = !level3Music.muted
+    putBombSound.muted = !putBombSound.muted
+    explosionSound.muted = !explosionSound.muted
+    gameOverMusic.muted = !gameOverMusic.muted
+    level3Music.play()
+  })
+
+  // Pause other music
+  level1Music.pause()
+  level2Music.pause()
+  gameOverMusic.pause()
+  mainMusic.pause()
+
+  // Play level 3 music
+  level3Music.play()
+
   const pageAccessedByReload =
     (window.performance.navigation &&
       window.performance.navigation.type === 1) ||
@@ -351,6 +383,7 @@ export function Level3 () {
     // Create a new bomb element
     const bomb = document.createElement('div')
     bomb.classList.add('bomb')
+    putBombSound.play()
 
     switch (true) {
       case lookingLeft:
@@ -396,11 +429,14 @@ export function Level3 () {
       document.getElementById('dynamic-board').appendChild(explosion)
       startExplosion(explosion)
 
+      // Play explosion sound
+      explosionSound.play()
+
       // explosion disappears after 1 second
       setTimeout(() => {
         explosion.remove()
       }, 1000)
-    }, 3000)
+    }, 2400)
 
     setTimeout(() => {
       // Animate bomb
@@ -792,6 +828,7 @@ export function Level3 () {
               monsterToRemove.style.left === `${monsterBlock.left}px` &&
               monsterToRemove.style.top === `${monsterBlock.top}px`
             ) {
+              moanSound.play()
               monsterToRemove.remove()
               score += 200
             }
