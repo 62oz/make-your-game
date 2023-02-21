@@ -1,3 +1,5 @@
+import { getLeaderboardData } from './leaderboard.js'
+
 export function Level1 () {
   const pageAccessedByReload =
     (window.performance.navigation &&
@@ -33,10 +35,10 @@ export function Level1 () {
   // Initialize game elements
   const gameContainer = document.getElementById('game-container')
   const scoreBoard = document.getElementById('score-board')
-  const countdownClock = document.getElementById('countdown-clock')
   const countdown = document.getElementById('countdown')
   const clock = document.getElementById('clock')
-  const livesBoard = document.getElementById('lives')
+  const manekiNeko = document.getElementById('maneki-neko')
+
   const pauseMenu = document.getElementById('pause-menu')
   const continueBtn = document.getElementById('continue-btn')
   const continueBtnD = document.getElementById('continue-btnD')
@@ -54,10 +56,9 @@ export function Level1 () {
   const wallBlock = document.getElementsByClassName('wallBlock')
   const gameOverScreen = document.getElementById('game-over-screen')
   const leaderboard = document.getElementById('leaderboard')
-  const startBtn = document.getElementById('start-btn')
   const hearts = document.getElementsByClassName('heart')
   const overlay = document.getElementById('overlay')
-  const leaderboardContent = document.getElementById('leaderboard-content')
+  const gameOverForm = document.getElementById('game-over-form')
 
   // Add wallBlock every other row and column
   for (let i = 0; i < 15; i++) {
@@ -120,9 +121,9 @@ export function Level1 () {
     }
   }
 
-  // Remove any boxBlocks between 0 and 200px left and 0 and 100px top
+  // Remove any boxBlocks between 0 and 200px left and 0 and 200px top
   boxBlocks = document.getElementsByClassName('boxBlock')
-  for (let i = 0; i < boxBlocks.length; i++) {
+  for (let i = boxBlocks.length - 1; i >= 0; i--) {
     if (
       parseInt(boxBlocks[i].style.left) <= 200 &&
       parseInt(boxBlocks[i].style.top) <= 200
@@ -148,7 +149,7 @@ export function Level1 () {
   key.style.position = 'absolute'
   key.style.top = randomBox.style.top
   key.style.left = randomBox.style.left
-  key.style.background = 'black'
+  key.style.backgroundImage = "url('sprites/maneki-neko.png')"
   // size 50x50
   key.style.width = '50px'
   key.style.height = '50px'
@@ -400,8 +401,11 @@ export function Level1 () {
   document.addEventListener('keydown', event => {
     if (event.key === 'Enter') {
       if (mainMenu.style.display === 'flex') {
-        mainMenu.style.display = 'none'
-        gameLoop()
+        // click start button
+        startButton.click()
+      } else if (dialogueBox.style.display === 'block') {
+        // click continue button
+        continueBtn.click()
       } else {
         gamePaused = !gamePaused
         startedTimer = false
@@ -685,7 +689,7 @@ export function Level1 () {
     } else {
       dialogueBox2.style.display = 'block'
       // CONTINUE TO LEVEL 2
-      localStorage.setItem('level', level)
+      localStorage.setItem('level', 2)
       localStorage.setItem('score', score)
     }
   }
@@ -1047,6 +1051,7 @@ export function Level1 () {
     ) {
       // Player is touched by key
       key.style.display = 'none'
+      manekiNeko.style.visibility = 'visible'
       keyTouched = true
     }
   }
@@ -1091,45 +1096,6 @@ export function Level1 () {
         }
       }
     }
-  }
-  function getLeaderboardData () {
-    fetch('http://localhost:8080/')
-      .then(response => response.json())
-      .then(data => {
-        console.log(data)
-        if (data) {
-          if (data.length > 0) {
-            console.log('hohohoh')
-            // Update leaderboard
-            for (let i = 0; i < data.length; i++) {
-              let player = data[i]
-              let playerRow = document.createElement('div')
-              playerRow.classList.add('player-row')
-              if (player.name.length < 1) {
-                player.name = 'ABC'
-              }
-              playerRow.innerHTML = `
-          <div class="player-name-score">${player.name} ${player.score}</div>`
-              leaderboardContent.appendChild(playerRow)
-            }
-          }
-
-          // If length of data is less than 10, add empty rows with dashes
-          if (data.length < 10 || data.length === 0) {
-            console.log('hehehe')
-            for (let i = 0; i < 10 - data.length; i++) {
-              let playerRow = document.createElement('div')
-              playerRow.classList.add('player-row')
-              playerRow.innerHTML = `
-            <div class="player-name-score">--- ------</div>`
-              leaderboardContent.appendChild(playerRow)
-            }
-          }
-        }
-      })
-      .catch(error => {
-        console.log(error)
-      })
   }
 
   let boxSlowFrameRate = 13
@@ -1330,9 +1296,10 @@ export function Level1 () {
       // Show game over screen with score and restard button
       gameOverScore.innerText = `${score}`
       gameOverScreen.style.display = 'flex' // get json data for leaderboard content
-      getLeaderboardData()
+      getLeaderboardData(score)
 
       leaderboard.style.display = 'block'
+      gameOverForm.style.display = 'block'
       gameContainer.style.display = 'none'
     } else {
       requestAnimationFrame(gameLoop)
@@ -1443,20 +1410,6 @@ export function Level1 () {
           }
         }
 
-        // Find next intersection with bomb
-        /* for (let i = 0; i < bombPositions.length; i++) {
-          let bomb = bombPositions[i];
-          if (
-            playerLeft - 3 < bomb.right &&
-            playerRight > bomb.left &&
-            playerTop < bomb.bottom &&
-            playerBottom > bomb.top
-          ) {
-            intersects = true;
-            break;
-          }
-        } */
-
         // If new player position is not wallBlockPosition, update player position
         if (!intersects) {
           player.style.left = parseInt(player.style.left) - 3 + 'px'
@@ -1491,20 +1444,6 @@ export function Level1 () {
           }
         }
 
-        // Find next intersection with bomb
-        /*  for (let i = 0; i < bombPositions.length; i++) {
-           let bomb = bombPositions[i];
-           if (
-             playerLeft < bomb.right - 10 &&
-             playerRight + 20 >= bomb.left &&
-             playerTop < bomb.bottom &&
-             playerBottom > bomb.top
-           ) {
-             intersects = true;
-             break;
-           }
-         }
-*/
         // If new player position is not wallBlockPosition, update player position
         if (!intersects) {
           player.style.left = parseInt(player.style.left) + 3 + 'px'
@@ -1538,20 +1477,6 @@ export function Level1 () {
             break
           }
         }
-
-        // Find next intersection with bomb
-        /*    for (let i = 0; i < bombPositions.length; i++) {
-             let bomb = bombPositions[i];
-             if (
-               playerLeft < bomb.right &&
-               playerRight > bomb.left &&
-               playerTop - 4 < bomb.bottom &&
-               playerBottom > bomb.top + 10
-             ) {
-               intersects = true;
-               break;
-             }
-           } */
 
         // If new player position is not wallBlockPosition, update player position
         if (!intersects) {
@@ -1587,20 +1512,6 @@ export function Level1 () {
             break
           }
         }
-
-        // Find next intersection with bomb
-        /*     for (let i = 0; i < bombPositions.length; i++) {
-              let bomb = bombPositions[i];
-              if (
-                playerLeft < bomb.right &&
-                playerRight > bomb.left &&
-                playerTop < bomb.bottom - 10 &&
-                playerBottom + 10 > bomb.top
-              ) {
-                intersects = true;
-                break;
-              }
-            } */
 
         // If new player position is not wallBlockPosition, update player position
         if (!intersects) {

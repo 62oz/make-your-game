@@ -3,7 +3,8 @@ import { Level2 } from './level2.js'
 import { Level3 } from './level3.js'
 
 function loadLevel () {
-  let level = localStorage.getItem('level') || 1
+  let level = parseInt(localStorage.getItem('level') || 1)
+
   document.documentElement.setAttribute('level', level)
 
   if (level === 1) {

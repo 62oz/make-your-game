@@ -3,6 +3,7 @@
 
 <head>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=VT323">
+  <link href='https://fonts.googleapis.com/css?family=Dela Gothic One' rel='stylesheet'>
   <link rel="stylesheet" href="style.css">
 </head>
 
@@ -16,6 +17,7 @@
           <div class="heart"></div>
           <div class="heart"></div>
         </div>
+        <div id="maneki-neko"></div>
         <div id="score-board"></div>
         <div id="countdown-clock">
           <div id="countdown"></div>
@@ -25,10 +27,6 @@
       <div class="wallBlock"></div>
       <div id="dynamic-board">
         <div id="key"></div>
-        <div id="overlay2-quarter1"></div>
-        <div id="overlay2-quarter2"></div>
-        <div id="overlay2-quarter3"></div>
-        <div id="overlay2-quarter4"></div>
         <div id="player"></div>
       </div>
     </div>
@@ -50,13 +48,20 @@
   </div>
   <div id="game-over-screen">
     <div id="game-over-score"></div>
-    <form id="game-over-form">
-      <input type="text" id="game-over-name" name="name" placeholder="Enter your name">
-      <input type="submit" id="game-over-submit" value="Submit">
-    </form>
+
     <button id="restart-btn2"></button>
     <div id="leaderboard">
+      <form id="game-over-form">
+        <input type="text" id="game-over-name" name="name" placeholder="Enter your name" maxlength="3">
+        <input type="submit" id="game-over-submit" value="Submit">
+      </form>
       <div id="leaderboard-content"></div>
+      <div id="pagination">
+        <div id="page-btns">
+          <button id="prev-btn" class="arrow">&lt;</button>
+          <button id="next-btn" class="arrow">&gt;</button>
+        </div>
+      </div>
     </div>
   </div>
 

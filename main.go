@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"sort"
+	"strconv"
 )
 
 func main() {
@@ -31,6 +32,13 @@ type ScoreContent struct {
 
 var LeaderBoard []ScoreContent
 
+func addFictionalScore() {
+	// Add 40 fictional scores to leaderboard
+	for i := 0; i < 40; i++ {
+		LeaderBoard = append(LeaderBoard, ScoreContent{Name: "Player" + strconv.Itoa(i), Score: i})
+	}
+}
+
 func ScoreHandler(w http.ResponseWriter, r *http.Request) {
 	// Handle requests
 
@@ -48,18 +56,19 @@ func ScoreHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	if len(LeaderBoard) < 40 {
+		addFictionalScore()
+	}
+
 	// Add new score to leaderboard
-	LeaderBoard = append(LeaderBoard, NewScore)
+	if NewScore.Score >= 0 {
+		LeaderBoard = append(LeaderBoard, NewScore)
+	}
 
 	// Sort leaderboard
 	sort.Slice(LeaderBoard, func(i, j int) bool {
 		return LeaderBoard[i].Score > LeaderBoard[j].Score
 	})
-
-	// Only keep top 10 scores
-	if len(LeaderBoard) > 10 {
-		LeaderBoard = LeaderBoard[:10]
-	}
 
 	// Send leaderboard
 	json.NewEncoder(w).Encode(LeaderBoard)

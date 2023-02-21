@@ -1,4 +1,7 @@
+import { getLeaderboardData } from './leaderboard.js'
+
 export function Level2 () {
+  console.log('LEVEL 2 MADAFAKA')
   // START LEVEL 2
 
   const pageAccessedByReload =
@@ -9,6 +12,13 @@ export function Level2 () {
       .map(nav => nav.type)
       .includes('reload')
 
+  //Clear local storage when window/tab is closed
+  window.onbeforeunload = function () {
+    localStorage.removeItem('level')
+    localStorage.removeItem('score')
+    return ''
+  }
+
   const staticBoard = document.getElementById('static-board')
   const livesBoard = document.getElementById('lives')
   livesBoard.style.display = 'none'
@@ -16,8 +26,23 @@ export function Level2 () {
   const mainMenu = document.getElementById('main-menu')
   mainMenu.style.width = '500px'
   mainMenu.style.height = '499px'
-  mainMenu.style.backgroundImage = "url('sprites/red-moon-rising.png')"
+  mainMenu.style.backgroundImage = "url('sprites/eclipse.png')"
   mainMenu.style.display = 'flex'
+  mainMenu.style.top = ''
+  mainMenu.style.left = ''
+  mainMenu.style.transform = 'translate(-50%, 100%)'
+
+  mainMenu.animate(
+    [
+      { transform: 'translate(-50%, 100%)' },
+      { transform: 'translate(-50%, -50%)' }
+    ],
+    {
+      duration: 2000,
+      easing: 'ease-in',
+      fill: 'forwards'
+    }
+  )
 
   const startButton = document.getElementById('start-btn')
 
@@ -29,9 +54,7 @@ export function Level2 () {
     startButton.style.transform = 'translate(-50%, -50%)'
     startButton.addEventListener('click', () => {
       // Start game
-      if (
-        mainMenu.style.backgroundImage == `url("sprites/red-moon-rising.png")`
-      ) {
+      if (mainMenu.style.backgroundImage == `url("sprites/eclipse.png")`) {
         mainMenu.style.width = '750px'
         mainMenu.style.height = '750px'
         mainMenu.style.backgroundImage = "url('sprites/prologue2.png')"
@@ -52,30 +75,12 @@ export function Level2 () {
     })
   })
 
-  let bloodMoonIndex = 0
-
-  let animateBloodMoon = setInterval(() => {
-    if (
-      mainMenu.style.backgroundImage == `url("sprites/red-moon-rising.png")`
-    ) {
-      bloodMoonIndex += 1
-      if (bloodMoonIndex > 11) {
-        bloodMoonIndex = 11
-      }
-      mainMenu.style.backgroundPosition = `0px -${bloodMoonIndex * 500}px`
-    } else {
-      clearInterval(animateBloodMoon)
-      // Reset mainMenu backgroundPosition
-      mainMenu.style.backgroundPosition = `0px 0px`
-    }
-  }, 200)
   // Initialize game variables
 
-  let score = localStorage.getItem('score') || 0
+  let score = parseInt(localStorage.getItem('score') || 0)
   let lives = 3
-  let initialTimer = 120
+  let initialTimer = 60
   let timer = initialTimer
-  let keyTouched = false
   let gamePaused = false
   let startedTimer = true
   let immune = false
@@ -87,14 +92,12 @@ export function Level2 () {
   const clock = document.getElementById('clock')
   const pauseMenu = document.getElementById('pause-menu')
   const continueBtn = document.getElementById('continue-btn')
-  const continueBtnD = document.getElementById('continue-btnD')
   const restartBtn = document.getElementById('restart-btn')
   const restartBtn2 = document.getElementById('restart-btn2')
   const gameOverScore = document.getElementById('game-over-score')
   const player = document.getElementById('player')
   const explosions = document.getElementsByClassName('explosion')
   const dynamicBoard = document.getElementById('dynamic-board')
-
   const wallBlock = document.getElementsByClassName('wallBlock')
   const gameOverScreen = document.getElementById('game-over-screen')
   const leaderboard = document.getElementById('leaderboard')
@@ -142,7 +145,7 @@ export function Level2 () {
   goal.style.top = '650px'
   goal.style.left = '650px'
   // 50x50 yellow square
-  goal.style.backgroundImage = "url('sprites/eclipse.png')"
+  goal.style.backgroundImage = "url('sprites/eclipse-small.png')"
   goal.style.width = '50px'
   goal.style.height = '50px'
   goal.style.position = 'absolute'
@@ -172,9 +175,9 @@ export function Level2 () {
     }
   }
 
-  // Remove any boxBlocks between 0 and 200px left and 0 and 100px top
+  // Remove any boxBlocks between 0 and 200px left and 0 and 200px top
   boxBlocks = document.getElementsByClassName('boxBlock')
-  for (let i = 0; i < boxBlocks.length; i++) {
+  for (let i = boxBlocks.length - 1; i >= 0; i--) {
     if (
       parseInt(boxBlocks[i].style.left) <= 200 &&
       parseInt(boxBlocks[i].style.top) <= 200
@@ -441,8 +444,8 @@ export function Level2 () {
   document.addEventListener('keydown', event => {
     if (event.key === 'Enter') {
       if (mainMenu.style.display === 'flex') {
-        mainMenu.style.display = 'none'
-        gameLoop()
+        // click start button
+        startButton.click()
       } else {
         gamePaused = !gamePaused
         startedTimer = false
@@ -466,9 +469,17 @@ export function Level2 () {
 
   // Handle restart game
   restartBtn.addEventListener('click', () => {
+    // set level to 1 in storage
+    localStorage.setItem('level', 1)
+    localStorage.setItem('score', 0)
+
     location.reload()
   })
   restartBtn2.addEventListener('click', () => {
+    // set level to 1 in storage
+    localStorage.setItem('level', 1)
+    localStorage.setItem('score', 0)
+
     location.reload()
   })
 
@@ -701,12 +712,16 @@ export function Level2 () {
     }
   }
 
-  continueBtnD.addEventListener('click', () => {
-    dialogueBox.style.display = 'none'
-    gamePaused = false
-    startedTimer = true
-    gameLoop()
-  })
+  // Check if player is on goal
+  function checkIfPlayerIsOnGoal () {
+    // Get player top left
+    const playerTop = parseInt(player.style.top)
+    const playerLeft = parseInt(player.style.left)
+    if (playerTop >= 640 && playerLeft >= 640) {
+      dialogueWithGoal()
+      return
+    }
+  }
 
   // Handle dialogue with goal
   function dialogueWithGoal () {
@@ -1001,64 +1016,6 @@ export function Level2 () {
     div.style.backgroundPosition = `${x}px ${y}px`
   }
 
-  let clockIndex = 0
-  let clockSlowFrameRate = 10
-
-  let lastClockChange = 0
-  const MIN_CLOCK_CHANGE_DELAY = 1000 // 100 milliseconds
-
-  function changeClock () {
-    // Check if enough time has passed since the last clock change
-    const now = Date.now()
-    if (now - lastClockChange < MIN_CLOCK_CHANGE_DELAY) {
-      return
-    }
-
-    // Update the clock background position
-    if (
-      (timer % Math.floor(initialTimer / 5) === 0 && timer !== initialTimer) ||
-      timer === 1
-    ) {
-      clockIndex += 1
-      if (clockIndex > 5) {
-        clockIndex = 5
-      }
-      clock.style.backgroundPosition = `0px -${clockIndex * 50}px`
-    }
-
-    // Update the last clock change time
-    lastClockChange = now
-  }
-
-  //animate goal
-  let goalIndex = 0
-  let goalSlowFrameRate = 10
-
-  let lastGoalChange = 0
-  let MIN_GOAL_CHANGE_DELAY = 300
-
-  function changeGoal () {
-    // Check if enough time has passed since the last clock change
-    const now = Date.now()
-    if (now - lastGoalChange < MIN_GOAL_CHANGE_DELAY) {
-      return
-    }
-    goalIndex += 1
-    if (goalIndex > 2) {
-      goalIndex = 0
-    }
-    goal.style.backgroundPosition = `0px -${goalIndex * 50}px`
-
-    // Update the last clock change time
-    lastGoalChange = now
-    if (timer < initialTimer / 2) {
-      MIN_GOAL_CHANGE_DELAY = 200
-    }
-    if (timer < initialTimer / 4) {
-      MIN_GOAL_CHANGE_DELAY = 100
-    }
-  }
-
   ////////////
 
   async function touchMonster () {
@@ -1101,45 +1058,6 @@ export function Level2 () {
         }
       }
     }
-  }
-  function getLeaderboardData () {
-    fetch('http://localhost:8080/')
-      .then(response => response.json())
-      .then(data => {
-        console.log(data)
-        if (data) {
-          if (data.length > 0) {
-            console.log('hohohoh')
-            // Update leaderboard
-            for (let i = 0; i < data.length; i++) {
-              let player = data[i]
-              let playerRow = document.createElement('div')
-              playerRow.classList.add('player-row')
-              if (player.name.length < 1) {
-                player.name = 'ABC'
-              }
-              playerRow.innerHTML = `
-          <div class="player-name-score">${player.name} ${player.score}</div>`
-              leaderboardContent.appendChild(playerRow)
-            }
-          }
-
-          // If length of data is less than 10, add empty rows with dashes
-          if (data.length < 10 || data.length === 0) {
-            console.log('hehehe')
-            for (let i = 0; i < 10 - data.length; i++) {
-              let playerRow = document.createElement('div')
-              playerRow.classList.add('player-row')
-              playerRow.innerHTML = `
-            <div class="player-name-score">--- ------</div>`
-              leaderboardContent.appendChild(playerRow)
-            }
-          }
-        }
-      })
-      .catch(error => {
-        console.log(error)
-      })
   }
 
   let boxSlowFrameRate = 13
@@ -1340,7 +1258,7 @@ export function Level2 () {
       // Show game over screen with score and restard button
       gameOverScore.innerText = `${score}`
       gameOverScreen.style.display = 'flex' // get json data for leaderboard content
-      getLeaderboardData()
+      getLeaderboardData(score)
 
       leaderboard.style.display = 'block'
       gameContainer.style.display = 'none'
@@ -1374,8 +1292,7 @@ export function Level2 () {
       moveMonsters()
       touchExplosion()
       touchMonster()
-      changeClock()
-      changeGoal()
+      checkIfPlayerIsOnGoal()
 
       // Animation stuff
       if (moving) {
@@ -1630,8 +1547,8 @@ export function Level2 () {
 
     // get center of player
 
-    let playerXC = parseInt(player.style.left) + 210 + player.offsetWidth
-    let playerYC = parseInt(player.style.top) + 40 + player.offsetHeight / 2
+    let playerXC = parseInt(player.style.left) + 150 + player.offsetWidth
+    let playerYC = parseInt(player.style.top) + 50 + player.offsetHeight / 2
     document.documentElement.style.setProperty('--cursorXPos', playerXC + 'px')
     document.documentElement.style.setProperty('--cursorYPos', playerYC + 'px')
   }

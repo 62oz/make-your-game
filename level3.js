@@ -1,3 +1,5 @@
+import { getLeaderboardData } from './leaderboard.js'
+
 export function Level3 () {
   // LEVEL 3
 
@@ -11,44 +13,50 @@ export function Level3 () {
 
   document.documentElement.removeAttribute('dark')
 
+  //Clear local storage when window/tab is closed
+  window.onbeforeunload = function () {
+    localStorage.removeItem('level')
+    localStorage.removeItem('score')
+    return ''
+  }
+
   const staticBoard = document.getElementById('static-board')
   const livesBoard = document.getElementById('lives')
   livesBoard.style.display = 'none'
   //Main menu
   const mainMenu = document.getElementById('main-menu')
-  mainMenu.style.width = '500px'
-  mainMenu.style.height = '499px'
-  mainMenu.style.backgroundImage = "url('sprites/red-moon-rising.png')"
+  mainMenu.style.width = '750px'
+  mainMenu.style.height = '750px'
+  mainMenu.style.backgroundImage = "url('sprites/daruma-to-moon.png')"
   mainMenu.style.display = 'flex'
 
   const startButton = document.getElementById('start-btn')
 
   document.addEventListener('DOMContentLoaded', () => {
-    startButton.style.width = '500px'
-    startButton.style.height = '500px'
+    startButton.style.width = '750px'
+    startButton.style.height = '750px'
     startButton.style.top = '50%'
     startButton.style.left = '50%'
     startButton.style.transform = 'translate(-50%, -50%)'
     startButton.addEventListener('click', () => {
       // Start game
       if (
-        mainMenu.style.backgroundImage == `url("sprites/red-moon-rising.png")`
+        mainMenu.style.backgroundImage == `url("sprites/bloodmoonlight.png")`
       ) {
         mainMenu.style.width = '750px'
         mainMenu.style.height = '750px'
-        mainMenu.style.backgroundImage = "url('sprites/prologue2.png')"
+        mainMenu.style.backgroundImage = "url('sprites/prologue3.png')"
         startButton.style.width = '280px'
         startButton.style.height = '130px'
         startButton.style.top = '82%'
         startButton.style.left = '50%'
       } else if (
-        mainMenu.style.backgroundImage === `url("sprites/prologue2.png")`
+        mainMenu.style.backgroundImage === `url("sprites/prologue3.png")`
       ) {
         mainMenu.style.display = 'none'
         mainMenu.remove()
         staticBoard.style.visibility = 'visible'
         livesBoard.style.display = 'block'
-        document.documentElement.setAttribute('dark', 'true')
         gameLoop()
       }
     })
@@ -57,29 +65,25 @@ export function Level3 () {
   let bloodMoonIndex = 0
 
   let animateBloodMoon = setInterval(() => {
-    if (
-      mainMenu.style.backgroundImage == `url("sprites/red-moon-rising.png")`
-    ) {
+    if (mainMenu.style.backgroundImage == `url("sprites/daruma-to-moon.png")`) {
       bloodMoonIndex += 1
-      if (bloodMoonIndex > 11) {
-        bloodMoonIndex = 11
+      if (bloodMoonIndex > 7) {
+        mainMenu.style.backgroundImage = "url('sprites/bloodmoonlight.png')"
+        mainMenu.style.backgroundPosition = `0px 0px`
+      } else {
+        mainMenu.style.backgroundPosition = `-${bloodMoonIndex * 750}px 0px`
       }
-      mainMenu.style.backgroundPosition = `0px -${bloodMoonIndex * 500}px`
     } else {
       clearInterval(animateBloodMoon)
-      // Reset mainMenu backgroundPosition
-      mainMenu.style.backgroundPosition = `0px 0px`
     }
   }, 200)
+
   // Initialize game variables
 
-  let score = localStorage.getItem('score') || 0
+  let score = parseInt(localStorage.getItem('score') || 0)
   let lives = 3
-  let initialTimer = 120
-  let timer = initialTimer
-  let keyTouched = false
+
   let gamePaused = false
-  let startedTimer = true
   let immune = false
   // Initialize game elements
   const gameContainer = document.getElementById('game-container')
@@ -104,96 +108,35 @@ export function Level3 () {
   const overlay = document.getElementById('overlay')
   const leaderboardContent = document.getElementById('leaderboard-content')
 
-  const overlay2Quarter1 = document.getElementById('overlay2-quarter1')
-  const overlay2Quarter2 = document.getElementById('overlay2-quarter2')
-  const overlay2Quarter3 = document.getElementById('overlay2-quarter3')
-  const overlay2Quarter4 = document.getElementById('overlay2-quarter4')
-
-  // Hide clock
-  clock.style.visibility = 'hidden'
-
-  // Add wallBlock every other row and column
-  for (let i = 0; i < 15; i++) {
-    for (let j = 0; j < 15; j++) {
-      if (i % 2 === 0 && j % 2 === 0) {
-        const wall = wallBlock[0].cloneNode(true)
-        wall.style.top = `${i * 50}px`
-        wall.style.left = `${j * 50}px`
-        wall.style.backgroundImage = "url('sprites/stand-dark.png')"
-        staticBoard.appendChild(wall)
-      }
-    }
-  }
-
-  //Surround game board with walls
-  for (let i = 0; i < 15; i++) {
-    for (let j = 0; j < 15; j++) {
-      if (i === 0 || i === 14 || j === 0 || j === 14) {
-        const wall = wallBlock[0].cloneNode(true)
-        wall.style.top = `${i * 50}px`
-        wall.style.left = `${j * 50}px`
-        wall.style.backgroundImage = "url('sprites/walls.png')"
-        staticBoard.appendChild(wall)
-      }
-    }
-  }
-
-  // Make a goal div and add it to the bottom right corner with id of goal
-  const goal = document.createElement('div')
-  goal.id = 'goal'
-  goal.style.top = '650px'
-  goal.style.left = '650px'
-  // 50x50 yellow square
-  goal.style.backgroundImage = "url('sprites/eclipse.png')"
-  goal.style.width = '50px'
-  goal.style.height = '50px'
-  goal.style.position = 'absolute'
-  dynamicBoard.appendChild(goal)
-
-  // Add random number between 30 and 80 of boxBlocks to dynamic board, making sure they don't overlap with walls and top and left values must be multiple of 50
-  for (let i = 0; i < Math.floor(Math.random() * 50 + 100); i++) {
-    const box = document.createElement('div')
-    box.classList.add('boxBlock')
-    box.style.top = `${Math.floor(Math.random() * 14 + 1) * 50}px`
-    box.style.left = `${Math.floor(Math.random() * 14 + 1) * 50}px`
-    dynamicBoard.appendChild(box)
-  }
-
-  let boxBlocks = document.getElementsByClassName('boxBlock')
-  // Remove boxes placed on top of walls
+  // Remove all wall blocks
   for (let i = 0; i < wallBlock.length; i++) {
-    for (let j = 0; j < boxBlocks.length; j++) {
-      if (
-        wallBlock[i].getBoundingClientRect().x ===
-          boxBlocks[j].getBoundingClientRect().x &&
-        wallBlock[i].getBoundingClientRect().y ===
-          boxBlocks[j].getBoundingClientRect().y
-      ) {
-        boxBlocks[j].remove()
-      }
-    }
+    wallBlock[i].remove()
   }
 
-  // Remove any boxBlocks between 0 and 200px left and 0 and 100px top
-  boxBlocks = document.getElementsByClassName('boxBlock')
-  for (let i = 0; i < boxBlocks.length; i++) {
-    if (
-      parseInt(boxBlocks[i].style.left) <= 200 &&
-      parseInt(boxBlocks[i].style.top) <= 200
-    ) {
-      boxBlocks[i].remove()
-    }
-  }
+  // Hide clock and countdown
+  clock.style.visibility = 'hidden'
+  countdown.style.visibility = 'hidden'
+  countdownClock.style.display = 'none'
 
-  // If there is block on top of goal, remove it
-  for (let i = 0; i < boxBlocks.length; i++) {
-    if (
-      boxBlocks[i].getBoundingClientRect().x ===
-        goal.getBoundingClientRect().x &&
-      boxBlocks[i].getBoundingClientRect().y === goal.getBoundingClientRect().y
-    ) {
-      boxBlocks[i].remove()
-    }
+  // Change static board background image
+  staticBoard.style.backgroundImage = "url('sprites/eclipse-last.png')"
+  staticBoard.style.backgroundRepeat = 'no-repeat'
+  staticBoard.style.backgroundSize = '750px 750px'
+
+  // Get center of static board
+  const staticBoardCenter = {
+    x: 375,
+    y: 375
+  }
+  // Get static board radius
+  const staticBoardRadius = 365
+
+  // Function to calculate distance from center
+  const distanceFromCenter = (x, y) => {
+    return Math.sqrt(
+      Math.pow(x - staticBoardCenter.x, 2) +
+        Math.pow(y - staticBoardCenter.y, 2)
+    )
   }
 
   // Add monsters to dynamic board
@@ -201,20 +144,12 @@ export function Level3 () {
     for (let i = 0; i < N; i++) {
       const monster = document.createElement('div')
       monster.classList.add('monster')
+      monster.style.width = '40px'
+      monster.style.height = '42px'
       monster.style.top = `${Math.floor(Math.random() * 14 + 1) * 50}px`
       monster.style.left = `${Math.floor(Math.random() * 14 + 1) * 50}px`
       dynamicBoard.appendChild(monster)
-      // If monster is placed on top of wall, remove it and try again
-      if (
-        monster.getBoundingClientRect().x ===
-          wallBlock[0].getBoundingClientRect().x &&
-        monster.getBoundingClientRect().y ===
-          wallBlock[0].getBoundingClientRect().y
-      ) {
-        monster.remove()
-        i--
-        continue
-      }
+
       // If monster is placed on top of another monster, remove it and try again
       let monsterDuplicate = false
       for (let j = 0; j < i; j++) {
@@ -237,124 +172,33 @@ export function Level3 () {
       if (monsterDuplicate) {
         continue
       }
-      // If monster is placed on top of boxBlock, remove it and try again
-      for (let j = 0; j < boxBlocks.length; j++) {
-        if (
-          monster.getBoundingClientRect().x ===
-            boxBlocks[j].getBoundingClientRect().x &&
-          monster.getBoundingClientRect().y ===
-            boxBlocks[j].getBoundingClientRect().y
-        ) {
-          monster.remove()
-          i--
-          break
-        }
-      }
     }
   }
 
-  // Define pixel locations of all .wallBlock elements
-  let wallBlockPositions = []
-  let wallBlocks = document.getElementsByClassName('wallBlock')
-  for (let i = 0; i < wallBlocks.length; i++) {
-    let wallBlock = wallBlocks[i]
-    let wallBlockTop = parseInt(wallBlock.style.top)
-    let wallBlockLeft = parseInt(wallBlock.style.left)
-    let wallBlockHeight = parseInt(wallBlock.offsetHeight)
-    let wallBlockWidth = parseInt(wallBlock.offsetWidth)
-    wallBlockPositions.push({
-      top: wallBlockTop,
-      left: wallBlockLeft,
-      bottom: wallBlockTop + wallBlockHeight,
-      right: wallBlockLeft + wallBlockWidth
-    })
-  }
-  // Define pixel locations of all .boxBlock elements
-  let boxBlockPositions = []
-  for (let i = 0; i < boxBlocks.length; i++) {
-    let boxBlock = boxBlocks[i]
-    let boxBlockTop = parseInt(boxBlock.style.top)
-    let boxBlockLeft = parseInt(boxBlock.style.left)
-    let boxBlockHeight = parseInt(boxBlock.offsetHeight)
-    let boxBlockWidth = parseInt(boxBlock.offsetWidth)
-    boxBlockPositions.push({
-      top: boxBlockTop,
-      left: boxBlockLeft,
-      bottom: boxBlockTop + boxBlockHeight,
-      right: boxBlockLeft + boxBlockWidth
-    })
-  }
-
-  // Combined array of all wallBlock and boxBlock positions
-  let wallAndBoxBlockPositions = wallBlockPositions.concat(boxBlockPositions)
-
-  spawnMonsters(4)
-
-  // Check if any monster is on top of a wall or boxBlock and if yes remove and respawn
-  let monsters = document.getElementsByClassName('monster')
-  for (let i = 0; i < monsters.length; i++) {
-    let monster = monsters[i]
-    let monsterTop = parseInt(monster.style.top)
-    let monsterLeft = parseInt(monster.style.left)
-    let monsterHeight = parseInt(monster.offsetHeight)
-    let monsterWidth = parseInt(monster.offsetWidth)
-    let monsterPosition = {
-      top: monsterTop,
-      left: monsterLeft,
-      bottom: monsterTop + monsterHeight,
-      right: monsterLeft + monsterWidth
-    }
-    for (let j = 0; j < wallAndBoxBlockPositions.length; j++) {
-      if (
-        monsterPosition.top < wallAndBoxBlockPositions[j].bottom &&
-        monsterPosition.bottom > wallAndBoxBlockPositions[j].top &&
-        monsterPosition.left < wallAndBoxBlockPositions[j].right &&
-        monsterPosition.right > wallAndBoxBlockPositions[j].left
-      ) {
-        monster.remove()
-        spawnMonsters(1)
-        monsters = document.getElementsByClassName('monster')
-        i = 0
-      }
-    }
-  }
+  spawnMonsters(10)
 
   // Check if there are monsters 0 and 200px left and 0 and 200px top
+  let monsters = document.getElementsByClassName('monster')
   for (let i = 0; i < monsters.length; i++) {
-    if (
-      parseInt(monsters[i].style.left) <= 200 &&
-      parseInt(monsters[i].style.top) <= 200
-    ) {
+    if (parseInt(monsters[i].style.top) <= 250) {
       monsters[i].remove()
       // Spawn new monster
       spawnMonsters(1)
+      i = 0
+      monsters = document.getElementsByClassName('monster')
     }
   }
 
-  // Replace all initial monstermonster positions by 10px right and 5px down
-  for (let i = 0; i < monsters.length; i++) {
-    monsters[i].style.left = `${parseInt(monsters[i].style.left) + 10}px`
-    monsters[i].style.top = `${parseInt(monsters[i].style.top) + 5}px`
-  }
+  monsters = document.getElementsByClassName('monster')
 
   // Give every monster movementpoint attribute initialized to 0
   for (let i = 0; i < monsters.length; i++) {
-    monsters[i].setAttribute('movementpoint', 50)
+    monsters[i].setAttribute('movementPoints', 50)
   }
 
   // Give every monster direction attribute
   for (let i = 0; i < monsters.length; i++) {
     monsters[i].setAttribute('direction', 'none')
-  }
-
-  // Get box and wall blocks positions
-  const boxBlocksPositions = []
-  for (let i = 0; i < boxBlocks.length; i++) {
-    boxBlocksPositions.push([
-      parseInt(boxBlocks[i].style.left),
-      parseInt(boxBlocks[i].style.top)
-    ])
-    boxBlocks[i].dataset.frame = 0
   }
 
   // Initialize player movement variables
@@ -427,11 +271,8 @@ export function Level3 () {
     }
   })
 
-  let timeAtPause = 0
-
   // Handle continue button
   continueBtn.addEventListener('click', () => {
-    timer = timeAtPause
     updateMetrics()
     gamePaused = false
     overlay.style.display = 'none'
@@ -443,20 +284,15 @@ export function Level3 () {
   document.addEventListener('keydown', event => {
     if (event.key === 'Enter') {
       if (mainMenu.style.display === 'flex') {
-        mainMenu.style.display = 'none'
-        gameLoop()
+        // click start button
+        startButton.click()
       } else {
         gamePaused = !gamePaused
-        startedTimer = false
         if (gamePaused) {
           overlay.style.display = 'block'
-          timeAtPause = timer
           pauseMenu.style.display = 'block'
         } else {
-          if (timeAtPause) {
-            timer = timeAtPause
-            updateMetrics()
-          }
+          updateMetrics()
           gamePaused = false
           overlay.style.display = 'none'
           pauseMenu.style.display = 'none'
@@ -468,13 +304,19 @@ export function Level3 () {
 
   // Handle restart game
   restartBtn.addEventListener('click', () => {
+    // set level to 1 in local storage and score to 0
+    localStorage.setItem('level', 1)
+    localStorage.setItem('score', 0)
     location.reload()
   })
   restartBtn2.addEventListener('click', () => {
+    localStorage.setItem('level', 1)
+    localStorage.setItem('score', 0)
+    console.log('restart')
     location.reload()
   })
 
-  // Update score, lives and timer
+  // Update score, lives
   const updateMetrics = () => {
     scoreBoard.innerHTML = `Score<br>${score}`
     // Hide hearts that are lost
@@ -483,7 +325,6 @@ export function Level3 () {
         hearts[i].style.visibility = 'hidden'
       }
     }
-    countdown.innerHTML = `Timer: ${timer}`
   }
 
   const animateExplosion = (explosion, explosionYIndex) => {
@@ -617,112 +458,6 @@ export function Level3 () {
     bombLeft = parseInt(bomb.style.left)
     bombBottom = bombTop + parseInt(bomb.offsetHeight)
     bombRight = bombLeft + parseInt(bomb.offsetWidth)
-
-    // Check if bomb is placed on a wall
-    for (let i = 0; i < wallBlockPositions.length; i++) {
-      let wallBlock = wallBlockPositions[i]
-      if (
-        bombTop < wallBlock.bottom &&
-        bombBottom > wallBlock.top &&
-        bombLeft < wallBlock.right &&
-        bombRight > wallBlock.left
-      ) {
-        //Put bomb on closest multiple of 50 to player's top and left
-        bomb.style.top = Math.ceil(parseInt(player.style.top) / 50) * 50 + 'px'
-        bomb.style.left =
-          Math.ceil(parseInt(player.style.left) / 50) * 50 + 'px'
-        if (
-          bombTop < wallBlock.bottom &&
-          bombBottom > wallBlock.top &&
-          bombLeft < wallBlock.right &&
-          bombRight > wallBlock.left
-        ) {
-          bomb.remove()
-          clearTimeout(bombTimeout)
-        }
-        return
-      }
-    }
-    // Check if bomb is placed on a box
-    for (let i = 0; i < boxBlockPositions.length; i++) {
-      let boxBlock = boxBlockPositions[i]
-      if (
-        bombTop < boxBlock.bottom &&
-        bombBottom > boxBlock.top &&
-        bombLeft < boxBlock.right &&
-        bombRight > boxBlock.left
-      ) {
-        bomb.style.top = Math.ceil(parseInt(player.style.top) / 50) * 50 + 'px'
-        bomb.style.left =
-          Math.ceil(parseInt(player.style.left) / 50) * 50 + 'px'
-        if (
-          bombTop < boxBlock.bottom &&
-          bombBottom > boxBlock.top &&
-          bombLeft < boxBlock.right &&
-          bombRight > boxBlock.left
-        ) {
-          bomb.remove()
-          clearTimeout(bombTimeout)
-        }
-        return
-      }
-    }
-    // Get goal top left right bottom
-    const goalTop = parseInt(goal.style.top)
-    const goalLeft = parseInt(goal.style.left)
-    const goalBottom = goalTop + parseInt(goal.offsetHeight)
-    const goalRight = goalLeft + parseInt(goal.offsetWidth)
-    // Check if bomb is placed on the goal
-    if (
-      bombTop < goalBottom &&
-      bombBottom > goalTop &&
-      bombLeft < goalRight &&
-      bombRight > goalLeft
-    ) {
-      bomb.remove()
-      clearTimeout(bombTimeout)
-      // DIALOGUE
-      dialogueWithGoal()
-      return
-    }
-    // Get key top left right bottom
-    const keyTop = parseInt(key.style.top)
-    const keyLeft = parseInt(key.style.left)
-    const keyBottom = keyTop + parseInt(key.offsetHeight)
-    const keyRight = keyLeft + parseInt(key.offsetWidth)
-    // Check if bomb is placed on the key
-    if (
-      bombTop < keyBottom &&
-      bombBottom > keyTop &&
-      bombLeft < keyRight &&
-      bombRight > keyLeft
-    ) {
-      bomb.remove()
-      clearTimeout(bombTimeout)
-      return
-    }
-  }
-
-  continueBtnD.addEventListener('click', () => {
-    dialogueBox.style.display = 'none'
-    gamePaused = false
-    startedTimer = true
-    gameLoop()
-  })
-
-  // Handle dialogue with goal
-  function dialogueWithGoal () {
-    // Pause game
-    gamePaused = true
-    startedTimer = false
-    timeAtPause = timer
-
-    // CONTINUE TO LEVEL 3
-    level = 3
-    localStorage.setItem('level', level)
-    localStorage.setItem('score', score)
-    //reload page
-    location.reload()
   }
 
   // Handle putting bomb when pressing spacebar
@@ -732,31 +467,10 @@ export function Level3 () {
     }
   })
 
-  let reduceTimer = () => {
-    while (startedTimer) {
-      setInterval(() => {
-        timer -= 1
-      }, 1000)
-      startedTimer = false
-    }
-  }
-
-  const goalBlockPosition = {
-    top: parseInt(goal.style.top) + 5,
-    left: parseInt(goal.style.left) + 10,
-    bottom: parseInt(goal.style.top) + parseInt(goal.offsetHeight) + 5,
-    right: parseInt(goal.style.left) + parseInt(goal.offsetWidth) + 10
-  }
-
-  const monsterLookingRight = new Image()
-  monsterLookingRight.src = 'sprites/goldfish-right.png'
-  const monsterLookingLeft = new Image()
-  monsterLookingLeft.src = 'sprites/goldfish-left.png'
-
   //Give each monster animationIndex property
   for (let i = 0; i < monsters.length; i++) {
     monsters[i].animationIndex = 0
-    monsters[i].style.backgroundImage = `url(${monsterLookingRight.src})`
+    monsters[i].style.backgroundImage = `url("sprites/aubergine.png")`
   }
 
   let monsterSlowFrameRate = 20
@@ -790,21 +504,19 @@ export function Level3 () {
       let monsterWidth = parseInt(monster.offsetWidth)
       monsterPositions.push({
         top: monsterTop + 5,
-        left: monsterLeft + 10,
+        left: monsterLeft + 6,
         bottom: monsterTop + monsterHeight + 5,
-        right: monsterLeft + monsterWidth + 10
+        right: monsterLeft + monsterWidth + 6
       })
     }
 
-    // Combined wall and box and bomb positions
-    let combinedPositions = [
-      ...wallBlockPositions,
-      ...boxBlockPositions,
-      ...bombPositions,
-      ...monsterPositions
-    ]
+    // Get map edge positions (staticBoard)
+    let mapTop = 0
+    let mapLeft = 0
+    let mapBottom = parseInt(staticBoard.offsetHeight)
+    let mapRight = parseInt(staticBoard.offsetWidth) - 80
 
-    // Check if monster is blocked by wall or box or bomb or another monster
+    monsters = document.getElementsByClassName('monster')
     for (let i = 0; i < monsters.length; i++) {
       let monster = monsters[i]
       let monsterTop = parseInt(monster.style.top)
@@ -820,88 +532,25 @@ export function Level3 () {
       let monsterBlockedBottom = false
       let monsterBlockedLeft = false
 
-      // Check if monster is blocked by wall or box or bomb
-      for (let i = 0; i < combinedPositions.length; i++) {
-        let wallAndBoxBlock = combinedPositions[i]
-        //Check if monster is blocked by wall or box on top with 5px margin
-        if (
-          monsterTop - 5 <= wallAndBoxBlock.bottom &&
-          monsterBottom > wallAndBoxBlock.top &&
-          monsterLeft > wallAndBoxBlock.left &&
-          monsterRight < wallAndBoxBlock.right
-        ) {
-          monsterBlockedTop = true
-        }
-        //Check if monster is blocked by wall or box on right with 10px margin
-        if (
-          monsterRight + 10 >= wallAndBoxBlock.left &&
-          monsterLeft < wallAndBoxBlock.right &&
-          monsterTop > wallAndBoxBlock.top &&
-          monsterBottom < wallAndBoxBlock.bottom
-        ) {
-          monsterBlockedRight = true
-        }
-        //Check if monster is blocked by wall or box on bottom with 5px margin
-        if (
-          monsterBottom + 5 >= wallAndBoxBlock.top &&
-          monsterTop < wallAndBoxBlock.bottom &&
-          monsterLeft > wallAndBoxBlock.left &&
-          monsterRight < wallAndBoxBlock.right
-        ) {
-          monsterBlockedBottom = true
-        }
-        //Check if monster is blocked by wall or box on left with 10px margin
-        if (
-          monsterLeft - 10 <= wallAndBoxBlock.right &&
-          monsterRight > wallAndBoxBlock.left &&
-          monsterTop > wallAndBoxBlock.top &&
-          monsterBottom < wallAndBoxBlock.bottom
-        ) {
-          monsterBlockedLeft = true
-        }
-      }
-
-      // Monsters can't go to goal position
-      if (
-        monsterTop - 5 <= goalBlockPosition.bottom &&
-        monsterBottom > goalBlockPosition.top &&
-        monsterLeft > goalBlockPosition.left &&
-        monsterRight < goalBlockPosition.right
-      ) {
+      //Check if monster is blocked edge on top with 5px margin
+      if (monsterTop - 5 <= mapTop) {
         monsterBlockedTop = true
       }
-      if (
-        monsterRight + 10 >= goalBlockPosition.left &&
-        monsterLeft < goalBlockPosition.right &&
-        monsterTop > goalBlockPosition.top &&
-        monsterBottom < goalBlockPosition.bottom
-      ) {
+      //Check if monster is blocked by edge of map
+      if (monsterRight + 6 >= mapRight) {
         monsterBlockedRight = true
       }
-      if (
-        monsterBottom + 5 >= goalBlockPosition.top &&
-        monsterTop < goalBlockPosition.bottom &&
-        monsterLeft > goalBlockPosition.left &&
-        monsterRight < goalBlockPosition.right
-      ) {
+      //Check if monster is blocked by edge of map
+      if (monsterBottom + 5 >= mapBottom) {
         monsterBlockedBottom = true
       }
-      if (
-        monsterLeft - 10 <= goalBlockPosition.right &&
-        monsterRight > goalBlockPosition.left &&
-        monsterTop > goalBlockPosition.top &&
-        monsterBottom < goalBlockPosition.bottom
-      ) {
+      //Check if monster is blocked by edge of map
+      if (monsterLeft - 6 <= mapLeft) {
         monsterBlockedLeft = true
       }
 
       if (slowedBy >= monsterSlowFrameRate) {
-        if (monsterDirection === 'left') {
-          monster.style.backgroundImage = `url(${monsterLookingLeft.src})`
-        } else if (monsterDirection === 'right') {
-          monster.style.backgroundImage = `url(${monsterLookingRight.src})`
-        }
-        drawSprite(monster, monster.animationIndex, 0, 30, 0)
+        drawSprite(monster, 0, monster.animationIndex, 0, 42)
         slowedBy = 0
         monster.animationIndex += 1
         if (monster.animationIndex > 1) {
@@ -919,6 +568,8 @@ export function Level3 () {
             if (!monsterBlockedLeft) {
               monster.style.left = monsterLeft - 1 + 'px'
               monster.movementPoints += 1
+            } else {
+              monster.movementPoints = 50
             }
             break
           case monsterDirection === 'right':
@@ -926,6 +577,8 @@ export function Level3 () {
             if (!monsterBlockedRight) {
               monster.style.left = monsterLeft + 1 + 'px'
               monster.movementPoints += 1
+            } else {
+              monster.movementPoints = 50
             }
             break
           case monsterDirection === 'up':
@@ -933,6 +586,8 @@ export function Level3 () {
             if (!monsterBlockedTop) {
               monster.style.top = monsterTop - 1 + 'px'
               monster.movementPoints += 1
+            } else {
+              monster.movementPoints = 50
             }
             break
           case monsterDirection === 'down':
@@ -940,6 +595,8 @@ export function Level3 () {
             if (!monsterBlockedBottom) {
               monster.style.top = monsterTop + 1 + 'px'
               monster.movementPoints += 1
+            } else {
+              monster.movementPoints = 50
             }
             break
         }
@@ -1004,64 +661,6 @@ export function Level3 () {
     div.style.backgroundPosition = `${x}px ${y}px`
   }
 
-  let clockIndex = 0
-  let clockSlowFrameRate = 10
-
-  let lastClockChange = 0
-  const MIN_CLOCK_CHANGE_DELAY = 1000 // 100 milliseconds
-
-  function changeClock () {
-    // Check if enough time has passed since the last clock change
-    const now = Date.now()
-    if (now - lastClockChange < MIN_CLOCK_CHANGE_DELAY) {
-      return
-    }
-
-    // Update the clock background position
-    if (
-      (timer % Math.floor(initialTimer / 5) === 0 && timer !== initialTimer) ||
-      timer === 1
-    ) {
-      clockIndex += 1
-      if (clockIndex > 5) {
-        clockIndex = 5
-      }
-      clock.style.backgroundPosition = `0px -${clockIndex * 50}px`
-    }
-
-    // Update the last clock change time
-    lastClockChange = now
-  }
-
-  //animate goal
-  let goalIndex = 0
-  let goalSlowFrameRate = 10
-
-  let lastGoalChange = 0
-  let MIN_GOAL_CHANGE_DELAY = 300
-
-  function changeGoal () {
-    // Check if enough time has passed since the last clock change
-    const now = Date.now()
-    if (now - lastGoalChange < MIN_GOAL_CHANGE_DELAY) {
-      return
-    }
-    goalIndex += 1
-    if (goalIndex > 2) {
-      goalIndex = 0
-    }
-    goal.style.backgroundPosition = `0px -${goalIndex * 50}px`
-
-    // Update the last clock change time
-    lastGoalChange = now
-    if (timer < initialTimer / 2) {
-      MIN_GOAL_CHANGE_DELAY = 200
-    }
-    if (timer < initialTimer / 4) {
-      MIN_GOAL_CHANGE_DELAY = 100
-    }
-  }
-
   ////////////
 
   async function touchMonster () {
@@ -1104,45 +703,6 @@ export function Level3 () {
         }
       }
     }
-  }
-  function getLeaderboardData () {
-    fetch('http://localhost:8080/')
-      .then(response => response.json())
-      .then(data => {
-        console.log(data)
-        if (data) {
-          if (data.length > 0) {
-            console.log('hohohoh')
-            // Update leaderboard
-            for (let i = 0; i < data.length; i++) {
-              let player = data[i]
-              let playerRow = document.createElement('div')
-              playerRow.classList.add('player-row')
-              if (player.name.length < 1) {
-                player.name = 'ABC'
-              }
-              playerRow.innerHTML = `
-          <div class="player-name-score">${player.name} ${player.score}</div>`
-              leaderboardContent.appendChild(playerRow)
-            }
-          }
-
-          // If length of data is less than 10, add empty rows with dashes
-          if (data.length < 10 || data.length === 0) {
-            console.log('hehehe')
-            for (let i = 0; i < 10 - data.length; i++) {
-              let playerRow = document.createElement('div')
-              playerRow.classList.add('player-row')
-              playerRow.innerHTML = `
-            <div class="player-name-score">--- ------</div>`
-              leaderboardContent.appendChild(playerRow)
-            }
-          }
-        }
-      })
-      .catch(error => {
-        console.log(error)
-      })
   }
 
   let boxSlowFrameRate = 13
@@ -1198,63 +758,6 @@ export function Level3 () {
         }
       }
 
-      // Check if any box is within first or second rectangle (with playerTop playerLeft playerRight playerBottom)
-      for (let j = 0; j < boxBlockPositions.length; j++) {
-        let boxBlock = boxBlockPositions[j]
-        if (
-          (boxBlock.left < maxX1 &&
-            boxBlock.right > minX1 &&
-            boxBlock.top < maxY1 &&
-            boxBlock.bottom > minY1) ||
-          (boxBlock.left < maxX2 &&
-            boxBlock.right > minX2 &&
-            boxBlock.top < maxY2 &&
-            boxBlock.bottom > minY2)
-        ) {
-          // If box is within explosion area, remove box that has these coordinates
-          for (let k = 0; k < boxBlocks.length; k++) {
-            let boxToRemove = boxBlocks[k]
-            if (
-              boxToRemove.style.left === `${boxBlock.left}px` &&
-              boxToRemove.style.top === `${boxBlock.top}px`
-            ) {
-              let burnBox = setInterval(() => {
-                let boxYIndex = parseInt(boxToRemove.dataset.frame)
-                if (slowedBy >= boxSlowFrameRate) {
-                  drawSprite(boxToRemove, 0, boxYIndex, 0, -50)
-                  slowedBy = 0
-                  boxYIndex += 1
-                  boxToRemove.dataset.frame = boxYIndex
-                  if (boxYIndex > 6) {
-                    clearInterval(burnBox)
-                    boxToRemove.remove()
-                  }
-                } else {
-                  slowedBy += 1
-                }
-              }, 100)
-              score += 10
-            }
-          }
-        }
-      }
-
-      // Update boxBlockPositions
-      boxBlockPositions = []
-      for (let i = 0; i < boxBlocks.length; i++) {
-        let boxBlock = boxBlocks[i]
-        let boxBlockTop = parseInt(boxBlock.style.top)
-        let boxBlockLeft = parseInt(boxBlock.style.left)
-        let boxBlockRight = boxBlockLeft + parseInt(boxBlock.offsetWidth)
-        let boxBlockBottom = boxBlockTop + parseInt(boxBlock.offsetHeight)
-        boxBlockPositions.push({
-          top: boxBlockTop,
-          left: boxBlockLeft,
-          right: boxBlockRight,
-          bottom: boxBlockBottom
-        })
-      }
-
       // Check if any monster is within first or second rectangle
       let monsterPositions = []
       for (let j = 0; j < monsters.length; j++) {
@@ -1302,7 +805,6 @@ export function Level3 () {
       // Reset game variables
       score = 0
       lives = 3
-      timer = 180
       // Reset game screen
       gameContainer.style.display = 'flex'
       gameOverScreen.style.display = 'none'
@@ -1338,12 +840,12 @@ export function Level3 () {
     // Update metrics
     updateMetrics()
     // Check for end game conditions
-    if (timer <= 0 || lives <= 0) {
+    if (lives <= 0) {
       // End game
       // Show game over screen with score and restard button
       gameOverScore.innerText = `${score}`
       gameOverScreen.style.display = 'flex' // get json data for leaderboard content
-      getLeaderboardData()
+      getLeaderboardData(score)
 
       leaderboard.style.display = 'block'
       gameContainer.style.display = 'none'
@@ -1353,32 +855,66 @@ export function Level3 () {
   }
 
   //start with player and bomb in random positions within the board
-  let playerX = 60
-  let playerY = 60
+  let playerX = 365
+  let playerY = 100
 
   player.style.left = playerX + 'px'
   player.style.top = playerY + 'px'
 
-  // overlay2s around player with 100px radius
-  overlay2Quarter1.style.left = playerX - 100 + 'px'
-  overlay2Quarter1.style.bottom = playerY - 100 + 'px'
-  overlay2Quarter2.style.left = playerX + 100 + 'px'
-  overlay2Quarter2.style.top = playerY - 100 + 'px'
-  overlay2Quarter3.style.right = playerX + 100 + 'px'
-  overlay2Quarter3.style.top = playerY + 100 + 'px'
-  overlay2Quarter4.style.right = playerX - 100 + 'px'
-  overlay2Quarter4.style.bottom = playerY + 100 + 'px'
+  // Check if player is outside the circle 365*365 from center of the board
+  const checkPlayerPosition = () => {
+    let playerX = parseInt(player.style.left)
+    let playerY = parseInt(player.style.top)
+    let playerCenterX = playerX + 15
+    let playerCenterY = playerY + 20
+    if (distanceFromCenter(playerCenterX, playerCenterY) > 365) {
+      // respawn
+      playerX = 365
+      playerY = 100
+      player.style.left = playerX + 'px'
+      player.style.top = playerY + 'px'
+      // remove one life
+      lives -= 1
+      updateMetrics()
+      immune = true
+      //Make player blink
+      let blinking = setInterval(() => {
+        player.style.visibility =
+          player.style.visibility === 'visible' ? 'hidden' : 'visible'
+      }, 100)
+      setTimeout(() => {
+        //Stop player from blinking
+        clearInterval(blinking)
+        player.style.visibility = 'visible'
+        immune = false
+      }, 2000)
+    }
+  }
+
+  // Check if no more monsters left
+  const checkMonsters = () => {
+    monsters = document.querySelectorAll('.monster')
+    if (monsters.length === 0) {
+      // End game
+      // Show game over screen with score and restard button
+      gameOverScore.innerText = `${score}`
+      // Change game over screen background image to win
+      gameOverScreen.style.backgroundImage = `url("sprites/you-win.png")`
+
+      gameOverScreen.style.display = 'flex'
+      // get json data for leaderboard content
+      getLeaderboardData(score)
+    }
+  }
 
   // Game loop using requestAnimationFrame
   const gameLoop = () => {
     if (!gamePaused) {
-      //call reduceTimerdrawSpriteRollDown
-      reduceTimer()
       moveMonsters()
       touchExplosion()
       touchMonster()
-      changeClock()
-      changeGoal()
+      checkPlayerPosition()
+      checkMonsters()
 
       // Animation stuff
       if (moving) {
@@ -1437,197 +973,17 @@ export function Level3 () {
       }
 
       if (moveLeft) {
-        // Find next intersection with wallBlock
-        let intersects = false
-        for (let i = 0; i < wallBlockPositions.length; i++) {
-          let wallBlock = wallBlockPositions[i]
-          if (
-            playerLeft - 3 < wallBlock.right &&
-            playerRight > wallBlock.left &&
-            playerTop < wallBlock.bottom &&
-            playerBottom > wallBlock.top
-          ) {
-            intersects = true
-            break
-          }
-        }
-        // Find next intersection with boxBlock
-        for (let i = 0; i < boxBlockPositions.length; i++) {
-          let boxBlock = boxBlockPositions[i]
-          if (
-            playerLeft - 3 < boxBlock.right &&
-            playerRight > boxBlock.left &&
-            playerTop < boxBlock.bottom &&
-            playerBottom > boxBlock.top
-          ) {
-            intersects = true
-            break
-          }
-        }
-
-        // Find next intersection with bomb
-        /* for (let i = 0; i < bombPositions.length; i++) {
-          let bomb = bombPositions[i];
-          if (
-            playerLeft - 3 < bomb.right &&
-            playerRight > bomb.left &&
-            playerTop < bomb.bottom &&
-            playerBottom > bomb.top
-          ) {
-            intersects = true;
-            break;
-          }
-        } */
-
-        // If new player position is not wallBlockPosition, update player position
-        if (!intersects) {
-          player.style.left = parseInt(player.style.left) - 3 + 'px'
-        }
+        player.style.left = parseInt(player.style.left) - 3 + 'px'
       }
       if (moveRight) {
-        // Find next intersection with wallBlock
-        let intersects = false
-        for (let i = 0; i < wallBlockPositions.length; i++) {
-          let wallBlock = wallBlockPositions[i]
-          if (
-            playerLeft < wallBlock.right &&
-            playerRight + 3 > wallBlock.left &&
-            playerTop < wallBlock.bottom &&
-            playerBottom > wallBlock.top
-          ) {
-            intersects = true
-            break
-          }
-        }
-        // Find next intersection with boxBlock
-        for (let i = 0; i < boxBlockPositions.length; i++) {
-          let boxBlock = boxBlockPositions[i]
-          if (
-            playerLeft < boxBlock.right &&
-            playerRight + 3 > boxBlock.left &&
-            playerTop < boxBlock.bottom &&
-            playerBottom > boxBlock.top
-          ) {
-            intersects = true
-            break
-          }
-        }
-
-        // Find next intersection with bomb
-        /*  for (let i = 0; i < bombPositions.length; i++) {
-           let bomb = bombPositions[i];
-           if (
-             playerLeft < bomb.right - 10 &&
-             playerRight + 20 >= bomb.left &&
-             playerTop < bomb.bottom &&
-             playerBottom > bomb.top
-           ) {
-             intersects = true;
-             break;
-           }
-         }
-*/
-        // If new player position is not wallBlockPosition, update player position
-        if (!intersects) {
-          player.style.left = parseInt(player.style.left) + 3 + 'px'
-        }
+        player.style.left = parseInt(player.style.left) + 3 + 'px'
       }
       if (moveUp) {
-        // Find next intersection with wallBlock
-        let intersects = false
-        for (let i = 0; i < wallBlockPositions.length; i++) {
-          let wallBlock = wallBlockPositions[i]
-          if (
-            playerLeft < wallBlock.right &&
-            playerRight > wallBlock.left &&
-            playerTop - 4 < wallBlock.bottom &&
-            playerBottom > wallBlock.top
-          ) {
-            intersects = true
-            break
-          }
-        }
-        // Find next intersection with boxBlock
-        for (let i = 0; i < boxBlockPositions.length; i++) {
-          let boxBlock = boxBlockPositions[i]
-          if (
-            playerLeft < boxBlock.right &&
-            playerRight > boxBlock.left &&
-            playerTop - 4 < boxBlock.bottom &&
-            playerBottom > boxBlock.top
-          ) {
-            intersects = true
-            break
-          }
-        }
-
-        // Find next intersection with bomb
-        /*    for (let i = 0; i < bombPositions.length; i++) {
-             let bomb = bombPositions[i];
-             if (
-               playerLeft < bomb.right &&
-               playerRight > bomb.left &&
-               playerTop - 4 < bomb.bottom &&
-               playerBottom > bomb.top + 10
-             ) {
-               intersects = true;
-               break;
-             }
-           } */
-
-        // If new player position is not wallBlockPosition, update player position
-        if (!intersects) {
-          player.style.top = parseInt(player.style.top) - 3 + 'px'
-        }
+        player.style.top = parseInt(player.style.top) - 3 + 'px'
       }
 
       if (moveDown) {
-        // Find next intersection with wallBlock
-        let intersects = false
-        for (let i = 0; i < wallBlockPositions.length; i++) {
-          let wallBlock = wallBlockPositions[i]
-          if (
-            playerLeft < wallBlock.right &&
-            playerRight > wallBlock.left &&
-            playerTop < wallBlock.bottom &&
-            playerBottom + 4 > wallBlock.top
-          ) {
-            intersects = true
-            break
-          }
-        }
-        // Find next intersection with boxBlock
-        for (let i = 0; i < boxBlockPositions.length; i++) {
-          let boxBlock = boxBlockPositions[i]
-          if (
-            playerLeft < boxBlock.right &&
-            playerRight > boxBlock.left &&
-            playerTop < boxBlock.bottom &&
-            playerBottom + 4 > boxBlock.top
-          ) {
-            intersects = true
-            break
-          }
-        }
-
-        // Find next intersection with bomb
-        /*     for (let i = 0; i < bombPositions.length; i++) {
-              let bomb = bombPositions[i];
-              if (
-                playerLeft < bomb.right &&
-                playerRight > bomb.left &&
-                playerTop < bomb.bottom - 10 &&
-                playerBottom + 10 > bomb.top
-              ) {
-                intersects = true;
-                break;
-              }
-            } */
-
-        // If new player position is not wallBlockPosition, update player position
-        if (!intersects) {
-          player.style.top = parseInt(player.style.top) + 3 + 'px'
-        }
+        player.style.top = parseInt(player.style.top) + 3 + 'px'
       }
     }
   }
